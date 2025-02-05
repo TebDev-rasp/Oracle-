@@ -35,8 +35,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Oracle',
-      theme: ThemeData.light(),
+      title: 'Oracle°',      theme: ThemeData.light(),
       darkTheme: ThemeData.dark(),
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
