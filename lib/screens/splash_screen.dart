@@ -47,7 +47,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const LoginScreen()),
-      );
+      );clear
     }
   }
 
