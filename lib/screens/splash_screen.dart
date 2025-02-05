@@ -18,8 +18,13 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
+    // Generate random duration between 3 and 6 seconds
+    final randomDuration = Duration(
+      seconds: 3 + (DateTime.now().millisecondsSinceEpoch % 4),
+    );
+    
     _controller = AnimationController(
-      duration: const Duration(seconds: 4),
+      duration: randomDuration,
       vsync: this,
     );
 
