@@ -18,13 +18,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
-    // Generate random duration between 3 and 6 seconds
-    final randomDuration = Duration(
-      seconds: 3 + (DateTime.now().millisecondsSinceEpoch % 4),
-    );
-    
+    // Set fixed duration of 4 seconds
     _controller = AnimationController(
-      duration: randomDuration,
+      duration: const Duration(seconds: 4),
       vsync: this,
     );
 
@@ -32,7 +28,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       if (status == AnimationStatus.completed) {
         checkUserAndNavigate();
       }
-    });
+    }); 
   }
 
   void checkUserAndNavigate() {
@@ -56,7 +52,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     _controller.dispose();
     super.dispose();
   }
-
+  
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
