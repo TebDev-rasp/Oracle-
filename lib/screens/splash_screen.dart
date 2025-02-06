@@ -24,17 +24,18 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       vsync: this,
     );
 
-    // Add this line to make the animation repeat infinitely
-    _controller.repeat();
-
-    // Preload map data during splash animation
     MapboxWidget.preloadMapData();
 
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         checkUserAndNavigate();
       }
-    }); 
+    });
+
+    // Add a slight delay before starting animation
+    Future.delayed(const Duration(milliseconds: 100), () {
+      _controller.forward();
+    });
   }
 
   void checkUserAndNavigate() {
@@ -71,6 +72,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           controller: _controller,
           onLoaded: (composition) {
             _controller.forward();
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return const Icon(Icons.error_outline, size: 50);
           },
         ),
       ),

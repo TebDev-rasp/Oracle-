@@ -7,13 +7,13 @@ import 'package:flutter/foundation.dart'
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
 /// Example:
-/// ```dart
+/// 
 /// import 'firebase_options.dart';
 /// // ...
 /// await Firebase.initializeApp(
 ///   options: DefaultFirebaseOptions.currentPlatform,
 /// );
-/// ```
+/// 
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
@@ -29,10 +29,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.windows:
         return windows;
       case TargetPlatform.linux:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for linux - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return linux;
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
@@ -46,6 +43,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '28956293501',
     projectId: 'heat-index-monitoring-b11b0',
     authDomain: 'heat-index-monitoring-b11b0.firebaseapp.com',
+    databaseURL: 'https://heat-index-monitoring-b11b0-default-rtdb.firebaseio.com',
     storageBucket: 'heat-index-monitoring-b11b0.firebasestorage.app',
     measurementId: 'G-3CXH1X3LB2',
   );
@@ -55,6 +53,7 @@ class DefaultFirebaseOptions {
     appId: '1:28956293501:android:c86c3a7c08623b83e93414',
     messagingSenderId: '28956293501',
     projectId: 'heat-index-monitoring-b11b0',
+    databaseURL: 'https://heat-index-monitoring-b11b0-default-rtdb.firebaseio.com',
     storageBucket: 'heat-index-monitoring-b11b0.firebasestorage.app',
   );
 
@@ -63,6 +62,7 @@ class DefaultFirebaseOptions {
     appId: '1:28956293501:ios:dc356bbf909a27b4e93414',
     messagingSenderId: '28956293501',
     projectId: 'heat-index-monitoring-b11b0',
+    databaseURL: 'https://heat-index-monitoring-b11b0-default-rtdb.firebaseio.com',
     storageBucket: 'heat-index-monitoring-b11b0.firebasestorage.app',
     iosBundleId: 'com.example.oracle',
   );
@@ -72,6 +72,7 @@ class DefaultFirebaseOptions {
     appId: '1:28956293501:ios:dc356bbf909a27b4e93414',
     messagingSenderId: '28956293501',
     projectId: 'heat-index-monitoring-b11b0',
+    databaseURL: 'https://heat-index-monitoring-b11b0-default-rtdb.firebaseio.com',
     storageBucket: 'heat-index-monitoring-b11b0.firebasestorage.app',
     iosBundleId: 'com.example.oracle',
   );
@@ -86,4 +87,13 @@ class DefaultFirebaseOptions {
     measurementId: 'G-RX3VLRZXEE',
   );
 
+  static const FirebaseOptions linux = FirebaseOptions(
+    apiKey: 'AIzaSyDWz9QwowGuP9h4iX74x6gy_cDlBVWNO48',
+    appId: '1:28956293501:web:7cb9676a059fa9c9e93414',
+    messagingSenderId: '28956293501',
+    projectId: 'heat-index-monitoring-b11b0',
+    authDomain: 'heat-index-monitoring-b11b0.firebaseapp.com',
+    databaseURL: 'https://heat-index-monitoring-b11b0-default-rtdb.firebaseio.com',
+    storageBucket: 'heat-index-monitoring-b11b0.firebasestorage.app',
+  );
 }

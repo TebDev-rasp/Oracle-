@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
 import 'providers/user_profile_provider.dart';
@@ -14,9 +15,12 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   
-  await FirebaseAppCheck.instance.activate(
-    androidProvider: AndroidProvider.debug,
-  );
+  if (!kIsWeb) {
+    await FirebaseAppCheck.instance.activate(
+      androidProvider: AndroidProvider.debug,
+      appleProvider: AppleProvider.debug,
+    );
+  }
 
   runApp(
     MultiProvider(
@@ -35,7 +39,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Oracle°',      theme: ThemeData.light(),
+      title: 'Oracle°',      
+      theme: ThemeData.light(),
       darkTheme: ThemeData.dark(),
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
