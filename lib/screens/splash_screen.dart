@@ -20,9 +20,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(seconds: 5),
+      duration: const Duration(seconds: 3),
       vsync: this,
     );
+
+    // Add this line to make the animation repeat infinitely
+    _controller.repeat();
 
     // Preload map data during splash animation
     MapboxWidget.preloadMapData();
@@ -64,7 +67,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       backgroundColor: isDarkMode ? const Color(0xFF1A1A1A) : Colors.white,
       body: Center(
         child: Lottie.asset(
-          'assets/animations/splash_screen1.json',
+          'assets/animations/oracle_wisdom.json',
           controller: _controller,
           onLoaded: (composition) {
             _controller.forward();
