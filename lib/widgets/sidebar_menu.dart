@@ -86,7 +86,7 @@ class SidebarMenu extends StatelessWidget {
                         : Colors.purple.withAlpha(26),
                     onTap: () {
                       if (ModalRoute.of(context)?.settings.name == '/') {
-                        Navigator.pop(context); // Just close drawer if already on home
+                        Navigator.pop(context);
                       } else {
                         Navigator.pushReplacement(
                           context,
@@ -101,12 +101,12 @@ class SidebarMenu extends StatelessWidget {
                   ListTile(
                     leading: Icon(
                       Icons.history,
-                      color: isDarkMode ? Colors.white54 : Colors.black54,
+                      color: isDarkMode ? Colors.white : Colors.black87,
                     ),
                     title: Text(
                       'Record',
                       style: TextStyle(
-                        color: isDarkMode ? Colors.white54 : Colors.black54,
+                        color: isDarkMode ? Colors.white : Colors.black87,
                       ),
                     ),
                     selected: ModalRoute.of(context)?.settings.name == '/record',
@@ -129,7 +129,8 @@ class SidebarMenu extends StatelessWidget {
                   ),
                 ],
               ),
-            ),            DeleteAccountTile(),
+            ),
+            DeleteAccountTile(),
             const SignOutTile(),
           ],
         ),

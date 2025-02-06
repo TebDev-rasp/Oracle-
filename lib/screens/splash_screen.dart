@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_profile_provider.dart';
+import '../widgets/mapbox_widget.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 
@@ -18,11 +19,13 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
-    // Set fixed duration of 4 seconds
     _controller = AnimationController(
-      duration: const Duration(seconds: 4),
+      duration: const Duration(seconds: 5),
       vsync: this,
     );
+
+    // Preload map data during splash animation
+    MapboxWidget.preloadMapData();
 
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {

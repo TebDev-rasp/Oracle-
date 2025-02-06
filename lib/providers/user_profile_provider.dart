@@ -11,7 +11,7 @@ class UserProfileProvider with ChangeNotifier {
   final _logger = Logger('UserProfileProvider');
   String? _username;
   File? _profileImage;
-  bool _isInitialized = false;
+bool _isInitialized = false;
   final _database = FirebaseDatabase.instance.ref();
 
   String? get username => _username;
