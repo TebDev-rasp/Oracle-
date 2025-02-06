@@ -64,7 +64,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       backgroundColor: isDarkMode ? const Color(0xFF1A1A1A) : Colors.white,
       body: Center(
         child: Lottie.asset(
-          'assets/animations/oracle_wisdom.json',
+          'assets/animations/splash_screen1.json',
           controller: _controller,
           onLoaded: (composition) {
             _controller.forward();
