@@ -7,8 +7,7 @@ import '../providers/user_profile_provider.dart';
 import '../widgets/temperature_container.dart';
 import '../widgets/humidity_container.dart';
 import '../widgets/user_avatar.dart';
-import '../widgets/heat_index_chart.dart';  // Add this import
-
+import '../widgets/heat_index_chart.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,6 +18,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool isFahrenheit = true;
 
   @override
   void initState() {
@@ -97,19 +97,24 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         children: [
           RefreshIndicator(
             onRefresh: () async {
-              // Add your refresh logic here
-              await Future.delayed(const Duration(seconds: 1)); // Simulate network delay
+              await Future.delayed(const Duration(seconds: 1));
             },
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: Column(
-                  children: const [
-                    HeatIndexContainer(),
-                    HeatIndexChart(),
-                    TemperatureContainer(),
-                    HumidityContainer(),
+                  children: [
+                    HeatIndexContainer(
+                      onSwap: () {
+                        setState(() {
+                          isFahrenheit = !isFahrenheit;
+                        });
+                      },
+                    ),
+                    const HeatIndexChart(),
+                    const TemperatureContainer(),
+                    const HumidityContainer(),
                   ],
                 ),
               ),
