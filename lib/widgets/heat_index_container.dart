@@ -14,7 +14,7 @@ class HeatIndexContainer extends StatefulWidget {
 
   const HeatIndexContainer({
     super.key,
-    this.heatIndex = const HeatIndex(),
+    required this.heatIndex,
     this.comfortLevel = const ComfortLevel(),
     required this.onSwap,
   });
@@ -95,33 +95,6 @@ class _HeatIndexContainerState extends State<HeatIndexContainer> {
                   ),
                 ),
               ),
-              Positioned(
-                top: 8,
-                right: 8,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      showFahrenheit 
-                          ? '${widget.heatIndex.celsius.toStringAsFixed(1)}°'
-                          : '${widget.heatIndex.value.toStringAsFixed(1)}°',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: HeatIndexColors.getTextColor(widget.heatIndex.value),
-                      ),
-                    ),
-                    Text(
-                      showFahrenheit ? 'C' : 'F',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: HeatIndexColors.getTextColor(widget.heatIndex.value),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               Center(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -131,10 +104,10 @@ class _HeatIndexContainerState extends State<HeatIndexContainer> {
                       showFahrenheit 
                           ? '${widget.heatIndex.value.toStringAsFixed(1)}°'
                           : '${widget.heatIndex.celsius.toStringAsFixed(1)}°',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: HeatIndexContainer._valueFontSize,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF06402B),
+                        color: HeatIndexColors.getTextColor(widget.heatIndex.value),
                       ),
                     ),
                     Padding(
@@ -144,7 +117,7 @@ class _HeatIndexContainerState extends State<HeatIndexContainer> {
                         style: TextStyle(
                           fontSize: HeatIndexContainer._valueFontSize * 0.6,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF06402B),
+                          color: HeatIndexColors.getTextColor(widget.heatIndex.value),
                         ),
                       ),
                     ),
@@ -155,12 +128,37 @@ class _HeatIndexContainerState extends State<HeatIndexContainer> {
                 bottom: 16,
                 left: 0,
                 right: 0,
-                child: Center(
-                  child: Text(
-                    _getRiskLevel(),
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: HeatIndexColors.getTextColor(widget.heatIndex.value),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: GestureDetector(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                            content: Text(
+                              _getRiskLevel(),
+                              style: const TextStyle(
+                                fontSize: 16,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    child: Text(
+                      _getRiskLevel(),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: HeatIndexColors.getTextColor(widget.heatIndex.value),
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ),

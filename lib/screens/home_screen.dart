@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:oracle/models/heat_index_data.dart';
 import 'package:oracle/widgets/map_placeholder.dart';
 import 'package:provider/provider.dart';
 import '../widgets/sidebar_menu.dart';
@@ -105,12 +106,18 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 padding: const EdgeInsets.all(24.0),
                 child: Column(
                   children: [
-                    HeatIndexContainer(
-                      onSwap: () {
-                        setState(() {
-                          isFahrenheit = !isFahrenheit;
-                        });
-                      },
+                    ChangeNotifierProvider(
+                      create: (_) => HeatIndex(),
+                      child: Consumer<HeatIndex>(
+                        builder: (context, heatIndex, _) => HeatIndexContainer(
+                          heatIndex: heatIndex,
+                          onSwap: () {
+                            setState(() {
+                              isFahrenheit = !isFahrenheit;
+                            });
+                          },
+                        ),
+                      ),
                     ),
                     const HeatIndexChart(),
                     const TemperatureContainer(),

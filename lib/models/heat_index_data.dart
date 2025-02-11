@@ -1,11 +1,33 @@
-class HeatIndex {
-  final double value;
-  final double celsius;
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 
-  const HeatIndex({
-    this.value = 79.5,
-    this.celsius = 0.0,
-  });
+class HeatIndex extends ChangeNotifier {
+  double value;
+  final double celsius;
+  Timer? _timer;
+
+  HeatIndex({
+    this.value = 70.0,
+    this.celsius = 20.20,
+  }) {
+    _startGenerating();
+  }
+
+  void _startGenerating() {
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      value += 5.0;
+      if (value > 130.5) {
+        value = 70.0;
+      }
+      notifyListeners();
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   String get formattedValue => '${value.toStringAsFixed(1)}°F';
 }
