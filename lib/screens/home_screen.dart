@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:oracle/models/heat_index_data.dart';
+import 'package:oracle/models/temperature_data.dart';
+import 'package:oracle/models/humidity_data.dart';
 import 'package:oracle/widgets/map_placeholder.dart';
 import 'package:provider/provider.dart';
 import '../widgets/sidebar_menu.dart';
@@ -20,16 +22,19 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool isFahrenheit = true;
+  late final Humidity _humidityProvider;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _humidityProvider = Humidity();  // Create single instance
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _humidityProvider.dispose();  // Dispose of the Humidity instance
     super.dispose();
   }
 
@@ -120,8 +125,25 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       ),
                     ),
                     const HeatIndexChart(),
-                    const TemperatureContainer(),
-                    const HumidityContainer(),
+                    ChangeNotifierProvider(
+                      create: (_) => Temperature(),
+                      child: Consumer<Temperature>(
+                        builder: (context, temperature, _) => TemperatureContainer(
+                          temperature: temperature,
+                          onSwap: () {
+                            setState(() {
+                              isFahrenheit = !isFahrenheit;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                    ChangeNotifierProvider(
+                      create: (_) => Humidity(),
+                      child: Consumer<Humidity>(
+                        builder: (context, humidity, _) => const HumidityContainer(),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -130,11 +152,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(24.0),
-              child: MapPlaceholder(),
+              child: const MapPlaceholder(),
             ),
           ),
-        ],
-      ),
+        ],      ),
     );
   }
 }

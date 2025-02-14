@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../models/humidity_data.dart';
 
 class HumidityContainer extends StatelessWidget {
+  static const double valueFontSize = 64.0;
+
   const HumidityContainer({super.key});
 
   @override
@@ -10,15 +14,12 @@ class HumidityContainer extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          margin: const EdgeInsets.only(top: 0),
-          child: Text(
-            'Humidity',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: isDarkMode ? Colors.white : const Color(0xFF111217),
-            ),
+        Text(
+          'Humidity',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: isDarkMode ? Colors.white : const Color(0xFF111217),
           ),
         ),
         Container(
@@ -30,8 +31,8 @@ class HumidityContainer extends StatelessWidget {
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
               colors: [
-                Color(0xFFFFE5B4),  // Pastel Yellow
-                Color(0xFFFFDAB9),  // Pastel Peach/Orange
+                Color(0xFFFFE5B4),
+                Color(0xFFFFDAB9),
               ],
             ),
             borderRadius: BorderRadius.circular(2),
@@ -43,6 +44,37 @@ class HumidityContainer extends StatelessWidget {
                 spreadRadius: 0.5,
               ),
             ],
+          ),
+          child: Consumer<Humidity>(
+            builder: (context, humidity, _) => Center(
+              child: humidity.value == 0.0
+                ? const CircularProgressIndicator()
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        humidity.value.toStringAsFixed(1),
+                        style: const TextStyle(
+                          fontSize: valueFontSize,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF111217),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          '%',
+                          style: const TextStyle(
+                            fontSize: valueFontSize * 0.6,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF111217),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+            ),
           ),
         ),
       ],
