@@ -12,7 +12,7 @@ dependencies:
   firebase_data_connect: ^0.1.0
   flutter_cache_manager: ^3.3.1
   flutter_map_cache: ^1.0.0
-  shared_preferences: ^2.0.0
+  shared_preferences: ^2.5.2
   lottie: ^2.6.0
   logging: ^1.2.0
   http: ^1.1.0

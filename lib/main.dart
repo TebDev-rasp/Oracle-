@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
 import 'providers/user_profile_provider.dart';
+import 'providers/historical_data_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +27,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => UserProfileProvider()),
+        ChangeNotifierProvider(create: (_) => HistoricalDataProvider()),
       ],
       child: const MyApp(),
     ),
@@ -53,10 +55,10 @@ class MyApp extends StatelessWidget {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               context.read<UserProfileProvider>().initializeProfile(snapshot.data!.uid);
             });
-            return const SplashScreen(); // Shows splash before HomeScreen
+            return const SplashScreen();
           }
           
-          return const SplashScreen(); // Shows splash before LoginScreen
+          return const SplashScreen();
         },
       ),
     );

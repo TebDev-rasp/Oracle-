@@ -120,7 +120,7 @@ class SidebarMenu extends StatelessWidget {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const RecordScreen(),
+                            builder: (context) => RecordScreen(),
                             settings: const RouteSettings(name: '/record'),
                           ),
                         );
