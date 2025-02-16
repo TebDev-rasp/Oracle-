@@ -23,7 +23,7 @@ class TemperatureControls extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Temperature Unit:'),clear
+            const Text('Temperature Unit:'),
             ToggleButtons(
               isSelected: [isCelsius, !isCelsius],
               onPressed: (index) => onUnitChanged(index == 0),
