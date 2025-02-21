@@ -14,7 +14,7 @@ class TemperatureControls extends StatelessWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     
     return Card(
-      color: isDarkMode ? const Color(0xFF1A1A1A) : const Color(0xFFFAFAFA),
+      color: isDarkMode ? const Color(0xFF1A1A1A) : const Color.fromARGB(255, 255, 255, 255),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(2),
       ),

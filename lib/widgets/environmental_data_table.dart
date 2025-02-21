@@ -13,7 +13,7 @@ class TableColors {
   
   static Color getLineColor(BuildContext context) {
     return Theme.of(context).brightness == Brightness.dark 
-        ? Colors.white.withAlpha(77)
+        ? const Color.fromARGB(255, 85, 68, 68).withAlpha(77)
         : Colors.black.withAlpha(77);
   }
 }

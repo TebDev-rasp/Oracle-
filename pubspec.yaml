@@ -28,6 +28,9 @@ dependencies:
   firebase_database: ^11.3.1
   firebase_app_check: ^0.3.2+1
   path_provider: ^2.1.5
+  screenshot: ^3.0.0
+  pdf: ^3.8.4
+  share_plus: ^7.1.0
 
 dev_dependencies:
   flutter_test:
@@ -41,6 +44,7 @@ flutter:
     - assets/icon/applogo.png
     - assets/animations/oracle_wisdom.json
     - assets/animations/splash_screen1.json
+    - assets/fonts/
 flutter_icons:
   android: "launcher_icon"
   ios: true
