@@ -6,6 +6,9 @@ class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   static final _logger = Logger('NotificationService');
   static bool _isInitialized = false;
+  
+  // Single flag to track if notification was shown this session
+  bool _hasShownNotificationThisSession = false;
 
   // Singleton factory constructor
   factory NotificationService() {
@@ -20,6 +23,9 @@ class NotificationService {
       _logger.info('Notification service already initialized');
       return;
     }
+
+    // Reset notification state on initialization
+    _hasShownNotificationThisSession = false;
 
     _logger.info('Initializing notification service');
     
@@ -83,6 +89,12 @@ class NotificationService {
   Future<void> showHeatIndexNotification(double heatIndex) async {
     _logger.info('Showing heat index notification for: $heatIndex');
     
+    // Simple check - if already shown this session, skip
+    if (_hasShownNotificationThisSession) {
+      _logger.info('Notification already shown this session, skipping');
+      return;
+    }
+
     String title;
     String body;
 
@@ -112,15 +124,12 @@ class NotificationService {
           body: body,
           icon: 'resource://drawable/ic_notification',
           notificationLayout: NotificationLayout.Default,
-          backgroundColor: Colors.transparent,
           criticalAlert: heatIndex >= 41,
-          displayOnForeground: true,
-          displayOnBackground: true,
-          autoDismissible: true,
-          category: NotificationCategory.Alarm,
           wakeUpScreen: heatIndex >= 41,
         ),
       );
+      
+      _hasShownNotificationThisSession = true;
       _logger.info('Heat index notification shown successfully');
     } catch (e) {
       _logger.severe('Failed to show notification: $e');
