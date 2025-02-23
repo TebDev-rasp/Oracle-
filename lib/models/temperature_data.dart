@@ -9,7 +9,7 @@ class Temperature extends ChangeNotifier {
   Temperature({
     this.value = 00.0,     
     this.celsius = 00.0,   
-  }) : _dbRef = FirebaseDatabase.instance.ref().child('smooth_data/temperature') {
+  }) : _dbRef = FirebaseDatabase.instance.ref().child('sensor_data/raw/temperature') {
     _startListening();
   }
 

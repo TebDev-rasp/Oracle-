@@ -6,7 +6,7 @@ class Humidity extends ChangeNotifier {
 
   Humidity({
     this.value = 00.0,
-  }) : _dbRef = FirebaseDatabase.instance.ref().child('smooth_data/humidity') {
+  }) : _dbRef = FirebaseDatabase.instance.ref().child('sensor_data/raw/humidity') {
     _startListening();
   }
 

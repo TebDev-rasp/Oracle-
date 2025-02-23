@@ -15,40 +15,46 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  bool _hasNavigated = false;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 2), // Reduced from 3 to 2 seconds
       vsync: this,
     );
 
+    // Preload map data in parallel
     MapboxWidget.preloadMapData();
 
+    // Set up navigation check
     _controller.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
+      if (status == AnimationStatus.completed && !_hasNavigated) {
+        _hasNavigated = true;
         checkUserAndNavigate();
       }
     });
 
-    // Add a slight delay before starting animation
+    // Start animation after brief delay
     Future.delayed(const Duration(milliseconds: 100), () {
-      _controller.forward();
+      if (mounted) {
+        _controller.forward();
+      }
     });
   }
 
   void checkUserAndNavigate() {
+    if (!mounted) return;
+    
     final userProfile = Provider.of<UserProfileProvider>(context, listen: false);
     
     if (userProfile.isLoggedIn) {
-      Navigator.pushReplacement(
-        context,
+      Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const HomeScreen()),
       );
     } else {
-      Navigator.pushReplacement(
-        context,
+      Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const LoginScreen()),
       );
     }
@@ -71,7 +77,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           'assets/animations/oracle_wisdom.json',
           controller: _controller,
           onLoaded: (composition) {
-            _controller.forward();
+            // Ensure we only start the animation if we haven't navigated
+            if (!_hasNavigated && mounted) {
+              _controller.forward();
+            }
           },
           errorBuilder: (context, error, stackTrace) {
             return const Icon(Icons.error_outline, size: 50);

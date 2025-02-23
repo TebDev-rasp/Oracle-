@@ -9,34 +9,36 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  awesome_notifications: ^0.8.3
   firebase_data_connect: ^0.1.0
   flutter_cache_manager: ^3.3.1
   flutter_map_cache: ^1.0.0
-  shared_preferences: ^2.5.2
-  lottie: ^2.6.0
+  shared_preferences: ^2.2.1
+  lottie: ^3.3.0
   logging: ^1.2.0
   http: ^1.1.0
-  flutter_map: ^6.0.0
+  flutter_map: ^8.0.0
   latlong2: ^0.9.0
-  firebase_core: ^3.10.1
+  firebase_core: ^3.12.0
   firebase_auth: ^5.4.1
   firebase_storage: ^12.4.1
   cloud_firestore: ^5.6.2
   fl_chart: ^0.70.2
   image_picker: ^1.1.2
   provider: ^6.0.5
-  firebase_database: ^11.3.1
+  firebase_database: ^11.3.3
   firebase_app_check: ^0.3.2+1
   path_provider: ^2.1.5
   screenshot: ^3.0.0
   pdf: ^3.8.4
-  share_plus: ^7.1.0
+  share_plus: ^10.1.4
+  firebase_messaging: ^15.2.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
-  flutter_launcher_icons: ^0.11.0
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
@@ -46,9 +48,9 @@ flutter:
     - assets/animations/splash_screen1.json
     - assets/fonts/
 flutter_icons:
-  android: "launcher_icon"
+  android: "ic_launcher"
   ios: true
-  image_path: "assets/icon/applogo.png"
+  image_path: "assets/icon/applogo.png"  # Create this image file or use your own
   min_sdk_android: 21
   web:
     generate: true
@@ -56,3 +58,7 @@ flutter_icons:
     generate: true
   macos:
     generate: true
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  image_path: "assets/icon/applogo.png"

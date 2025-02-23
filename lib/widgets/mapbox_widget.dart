@@ -1,8 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
@@ -52,6 +52,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   final castillejosLocation = LatLng(14.93363, 120.19785);
   List<Polygon> polygons = [];
   bool isLoading = true;
+  List<List<double>> coordinates = [];
 
   @override
   void initState() {
@@ -82,19 +83,30 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     }
   }
 
-  void processGeoJSON(Map<String, dynamic> geojson) {
-    final features = geojson['features'] as List;
+  void processGeoJSON(dynamic geoJSON) {
+    if (geoJSON == null) return;
+    
     setState(() {
-      polygons = features.map((feature) {
-        final coordinates = feature['geometry']['coordinates'][0] as List;
-        return Polygon(
-          points: coordinates.map((coord) => LatLng(coord[1], coord[0])).toList().cast<LatLng>(),
-          color: Colors.blue.withAlpha(77),
-          borderColor: Colors.blue,
-          borderStrokeWidth: 2,
-        );
-      }).toList();
-      isLoading = false;
+      try {
+        if (geoJSON is Map && geoJSON['features'] is List) {
+          final features = geoJSON['features'] as List;
+          coordinates = features.map((feature) {
+            if (feature is Map && 
+                feature['geometry'] is Map && 
+                feature['geometry']['coordinates'] is List) {
+              final coords = feature['geometry']['coordinates'] as List;
+              if (coords.length >= 2 && 
+                  coords[0] is num && 
+                  coords[1] is num) {
+                return <double>[coords[0].toDouble(), coords[1].toDouble()];
+              }
+            }
+            return <double>[];
+          }).toList().cast<List<double>>();
+        }
+      } catch (e) {
+        debugPrint('Error processing GeoJSON: $e');  // Changed from print to debugPrint
+      }
     });
   }
 
