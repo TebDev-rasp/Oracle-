@@ -24,7 +24,8 @@ class _HourlyRecordViewState extends State<HourlyRecordView> {
     return TextStyle(
       fontSize: fontSize,
       fontWeight: fontWeight,
-      color: Colors.black87,  // You can adjust the color as needed
+      // Use theme color instead of hardcoded color
+      color: Theme.of(context).textTheme.titleLarge?.color,
     );
   }
 

@@ -82,8 +82,17 @@ class NotificationService {
 
   Future<void> requestPermissions() async {
     _logger.info('Requesting notification permissions');
-    await AwesomeNotifications().requestPermissionToSendNotifications();
-    _logger.info('Notification permissions requested');
+    
+    // Check if permissions are already granted
+    final bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+    if (!isAllowed) {
+      // Show dialog to request permissions
+      await AwesomeNotifications().requestPermissionToSendNotifications();
+    }
+    
+    // Double check if permissions were granted
+    final afterRequest = await AwesomeNotifications().isNotificationAllowed();
+    _logger.info('Notification permissions granted: $afterRequest');
   }
 
   Future<void> showHeatIndexNotification(double heatIndex) async {

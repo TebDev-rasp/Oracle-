@@ -1,3 +1,4 @@
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:oracle/services/heat_index_monitor.dart';
 import 'package:provider/provider.dart';
@@ -26,6 +27,19 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
+    
+    // Initialize notifications first
+    final notificationService = NotificationService();
+    await notificationService.initialize();
+    
+    // Explicitly request permissions
+    await notificationService.requestPermissions();
+    
+    // Check if permissions were granted
+    final bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+    if (!isAllowed) {
+      developer.log('Notification permissions not granted');
+    }
     
     // Initialize logging first
     Logger.root.level = Level.ALL;

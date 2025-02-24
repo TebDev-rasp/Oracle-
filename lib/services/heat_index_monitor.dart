@@ -47,6 +47,9 @@ class HeatIndexMonitor {
   }
 
   static Future<void> checkHeatIndex(double heatIndex) async {
+    // Add debug logging
+    _logger.info('Checking heat index: $heatIndex');
+    
     String title;
     String body;
     bool isCritical;
@@ -72,6 +75,9 @@ class HeatIndexMonitor {
     }
 
     try {
+        final bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+        _logger.info('Notification permissions status: $isAllowed');
+        
         await AwesomeNotifications().createNotification(
             content: NotificationContent(
                 id: DateTime.now().millisecond,
@@ -83,7 +89,7 @@ class HeatIndexMonitor {
                 category: NotificationCategory.Alarm,
             ),
         );
-        _logger.info('Heat index notification sent');
+        _logger.info('Heat index notification sent successfully');
     } catch (e) {
         _logger.severe('Failed to send notification: $e');
     }
