@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_profile_provider.dart';
-import '../widgets/mapbox_widget.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 
@@ -21,12 +20,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(seconds: 2), // Reduced from 3 to 2 seconds
+      duration: const Duration(seconds: 2),
       vsync: this,
     );
 
-    // Preload map data in parallel
-    MapboxWidget.preloadMapData();
+    // Remove the preload map data call since it's no longer needed
+    // MapWidget().preloadMapData();
 
     // Set up navigation check
     _controller.addStatusListener((status) {

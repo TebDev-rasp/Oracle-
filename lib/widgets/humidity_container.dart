@@ -15,7 +15,7 @@ class HumidityContainer extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 10.0),
           child: Row(  // Added Row to match Temperature container
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -35,7 +35,7 @@ class HumidityContainer extends StatelessWidget {
         Container(
           width: double.infinity,
           height: 150,
-          margin: const EdgeInsets.only(top: 0, bottom: 10),
+          margin: const EdgeInsets.only(top: 2, bottom: 10),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               begin: Alignment.centerLeft,

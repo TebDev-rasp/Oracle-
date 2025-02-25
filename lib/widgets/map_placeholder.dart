@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'mapbox_widget.dart';
+import 'map_widget.dart';
 
 class MapPlaceholder extends StatelessWidget {
   const MapPlaceholder({super.key});
@@ -26,7 +26,7 @@ class MapPlaceholder extends StatelessWidget {
           width: double.infinity,
           height: 600,
           margin: const EdgeInsets.only(top: 8, bottom: 24),
-          child: const MapboxWidget(),
+          child: const MapWidget(),
         ),
       ],
     );

@@ -1,9 +1,6 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 class CachingTileProvider extends TileProvider {
@@ -19,96 +16,20 @@ class CachingTileProvider extends TileProvider {
   }
 }
 
-class MapboxWidget extends StatefulWidget {
-  const MapboxWidget({super.key});
+// Rename class to MapWidget
+class MapWidget extends StatefulWidget {
+  const MapWidget({super.key});
 
-  // Add static method for preloading
-  static Future<void> preloadMapData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final cachedData = prefs.getString('geojson_cache');
-    
-    if (cachedData != null) {
-      return;
-    }
-
-    try {
-      final response = await http.get(Uri.parse(
-          'https://api.maptiler.com/data/23e6a94e-6120-4633-9dc2-a785549b5884/features.json?key=U1ZGZGT5WX7HvfCaRryf'));
-      
-      if (response.statusCode == 200) {
-        await prefs.setString('geojson_cache', response.body);
-      }
-    } catch (e) {
-      debugPrint('Error preloading GeoJSON: $e');
-    }
-  }
+  // Remove preloadMapData method as it's no longer needed for OSM
 
   @override
-  State<MapboxWidget> createState() => _MapboxWidgetState();
+  State<MapWidget> createState() => _MapWidgetState();
 }
 
-class _MapboxWidgetState extends State<MapboxWidget> {
+class _MapWidgetState extends State<MapWidget> {
   final MapController _mapController = MapController();
   final castillejosLocation = LatLng(14.93363, 120.19785);
-  List<Polygon> polygons = [];
   bool isLoading = true;
-  List<List<double>> coordinates = [];
-
-  @override
-  void initState() {
-    super.initState();
-    loadGeoJSON();
-  }
-
-  Future<void> loadGeoJSON() async {
-    if (polygons.isNotEmpty) return;
-    
-    final prefs = await SharedPreferences.getInstance();
-    final cachedData = prefs.getString('geojson_cache');
-    
-    if (cachedData != null) {
-      processGeoJSON(json.decode(cachedData));
-    }
-
-    try {
-      final response = await http.get(Uri.parse(
-          'https://api.maptiler.com/data/23e6a94e-6120-4633-9dc2-a785549b5884/features.json?key=U1ZGZGT5WX7HvfCaRryf'));
-      
-      if (response.statusCode == 200) {
-        await prefs.setString('geojson_cache', response.body);
-        processGeoJSON(json.decode(response.body));
-      }
-    } catch (e) {
-      debugPrint('Error loading GeoJSON: $e');
-    }
-  }
-
-  void processGeoJSON(dynamic geoJSON) {
-    if (geoJSON == null) return;
-    
-    setState(() {
-      try {
-        if (geoJSON is Map && geoJSON['features'] is List) {
-          final features = geoJSON['features'] as List;
-          coordinates = features.map((feature) {
-            if (feature is Map && 
-                feature['geometry'] is Map && 
-                feature['geometry']['coordinates'] is List) {
-              final coords = feature['geometry']['coordinates'] as List;
-              if (coords.length >= 2 && 
-                  coords[0] is num && 
-                  coords[1] is num) {
-                return <double>[coords[0].toDouble(), coords[1].toDouble()];
-              }
-            }
-            return <double>[];
-          }).toList().cast<List<double>>();
-        }
-      } catch (e) {
-        debugPrint('Error processing GeoJSON: $e');  // Changed from print to debugPrint
-      }
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -127,20 +48,21 @@ class _MapboxWidgetState extends State<MapboxWidget> {
           ),
           children: [
             TileLayer(
-              urlTemplate: 'https://api.maptiler.com/maps/basic-v2/{z}/{x}/{y}.png?key=U1ZGZGT5WX7HvfCaRryf',
+              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
               userAgentPackageName: 'com.example.app',
               tileProvider: CachingTileProvider(),
-              maxZoom: 18,
+              maxZoom: 19,
               minZoom: 1,
-            ),
-            PolygonLayer(
-              polygons: polygons,
+              // Add attribution for OSM
+              additionalOptions: const {
+                'attribution': '© OpenStreetMap contributors',
+              },
             ),
           ],
         ),
         if (isLoading)
           Container(
-            color: Colors.white.withValues(red: 255, green: 255, blue: 255, alpha: 204),
+            color: Colors.white.withAlpha(204), // 0.8 * 255 = 204
             child: const Center(
               child: CircularProgressIndicator(),
             ),
