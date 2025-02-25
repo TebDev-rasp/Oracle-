@@ -37,7 +37,7 @@ class NotificationService {
     
     try {
       await AwesomeNotifications().initialize(
-        'resource://drawable/ic_notification',  // Updated icon path
+        'resource://drawable/ic_notification',
         [
           NotificationChannel(
             channelKey: 'heat_index_channel',
@@ -46,11 +46,9 @@ class NotificationService {
             defaultColor: Colors.transparent,
             ledColor: Colors.transparent,
             importance: NotificationImportance.High,
-            defaultRingtoneType: DefaultRingtoneType.Alarm,
             enableVibration: true,
             criticalAlerts: true,
-            playSound: true,
-            soundSource: 'resource://raw/alert_sound',
+            playSound: false,  // Disable sound
             enableLights: true,
             groupKey: 'heat_index_alerts',
             groupSort: GroupSort.Desc,
