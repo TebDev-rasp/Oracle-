@@ -64,7 +64,7 @@ class _HeatIndexContainerState extends State<HeatIndexContainer> {
         Container(
           width: double.infinity,
           height: 150,
-          margin: const EdgeInsets.only(top: 8, bottom: 24),
+          margin: const EdgeInsets.only(top: 0, bottom: 10),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.centerLeft,

@@ -49,7 +49,7 @@ class _TemperatureContainerState extends State<TemperatureContainer> {
         Container(
           width: double.infinity,
           height: 150,
-          margin: const EdgeInsets.only(top: 8, bottom: 24),
+          margin: const EdgeInsets.only(top: 0, bottom: 10),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               begin: Alignment.centerLeft,

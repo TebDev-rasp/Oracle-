@@ -14,18 +14,28 @@ class HumidityContainer extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Humidity',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: isDarkMode ? Colors.white : const Color(0xFF111217),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
+          child: Row(  // Added Row to match Temperature container
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Humidity',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: isDarkMode ? Colors.white : const Color(0xFF111217),
+                ),
+              ),
+              // Space reserved for potential controls
+              const SizedBox(width: 48),  // Match temperature swap button width
+            ],
           ),
         ),
         Container(
           width: double.infinity,
           height: 150,
-          margin: const EdgeInsets.only(top: 8, bottom: 24),
+          margin: const EdgeInsets.only(top: 0, bottom: 10),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               begin: Alignment.centerLeft,

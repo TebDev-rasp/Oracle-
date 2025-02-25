@@ -8,7 +8,14 @@ class NotificationService {
   static bool _isInitialized = false;
   
   // Single flag to track if notification was shown this session
-  bool _hasShownNotificationThisSession = false;
+
+  // Add these new fields at the top of the class
+  static const Duration _notificationCooldown = Duration(minutes: 30);
+  static const double _minimumChangeThreshold = 2.0;
+  
+  DateTime? _lastNotificationTime;
+  double? _lastNotifiedHeatIndex;
+  String? _lastNotificationLevel;
 
   // Singleton factory constructor
   factory NotificationService() {
@@ -25,7 +32,6 @@ class NotificationService {
     }
 
     // Reset notification state on initialization
-    _hasShownNotificationThisSession = false;
 
     _logger.info('Initializing notification service');
     
@@ -40,9 +46,15 @@ class NotificationService {
             defaultColor: Colors.transparent,
             ledColor: Colors.transparent,
             importance: NotificationImportance.High,
-            defaultRingtoneType: DefaultRingtoneType.Notification,
+            defaultRingtoneType: DefaultRingtoneType.Alarm,
             enableVibration: true,
             criticalAlerts: true,
+            playSound: true,
+            soundSource: 'resource://raw/alert_sound',
+            enableLights: true,
+            groupKey: 'heat_index_alerts',
+            groupSort: GroupSort.Desc,
+            groupAlertBehavior: GroupAlertBehavior.Children,
           ),
         ],
         debug: true,
@@ -96,52 +108,128 @@ class NotificationService {
   }
 
   Future<void> showHeatIndexNotification(double heatIndex) async {
-    _logger.info('Showing heat index notification for: $heatIndex');
+    _logger.info('Evaluating heat index notification for: $heatIndex');
     
-    // Simple check - if already shown this session, skip
-    if (_hasShownNotificationThisSession) {
-      _logger.info('Notification already shown this session, skipping');
+    // Check cooldown period
+    if (_lastNotificationTime != null) {
+      final timeSinceLastNotification = DateTime.now().difference(_lastNotificationTime!);
+      if (timeSinceLastNotification < _notificationCooldown) {
+        // Check if change is significant enough
+        if (_lastNotifiedHeatIndex != null) {
+          final change = (heatIndex - _lastNotifiedHeatIndex!).abs();
+          if (change < _minimumChangeThreshold) {
+            _logger.info('Change in heat index ($change°C) below threshold, skipping notification');
+            return;
+          }
+        }
+      }
+    }
+
+    // Determine notification level
+    String currentLevel;
+    if (heatIndex >= 54) {
+      currentLevel = 'EXTREME_DANGER';
+    } else if (heatIndex >= 41) {
+      currentLevel = 'DANGER';
+    } else if (heatIndex >= 32) {
+      currentLevel = 'EXTREME_CAUTION';
+    } else if (heatIndex >= 27) {
+      currentLevel = 'CAUTION';
+    } else {
+      currentLevel = 'NORMAL';
+    }
+
+    // Check if notification level has changed
+    if (_lastNotificationLevel == currentLevel && 
+        _lastNotifiedHeatIndex != null &&
+        (heatIndex - _lastNotifiedHeatIndex!).abs() < _minimumChangeThreshold) {
+      _logger.info('Same notification level and change below threshold, skipping notification');
       return;
     }
 
+    // Original notification logic
     String title;
     String body;
+    Color? backgroundColor;
+    List<NotificationActionButton> actionButtons = [];
 
     if (heatIndex >= 54) {
       title = '🟣 Extreme Danger';
-      body = 'Heat index: ${heatIndex.round()}°C - Heat stroke imminent';
+      body = 'Heat index: ${heatIndex.round()}°C\n'
+             '• Heat stroke imminent\n'
+             '• Avoid outdoor activities\n'
+             '• Seek immediate shelter';
+      backgroundColor = Colors.purple[900];
+      actionButtons = [
+        NotificationActionButton(
+          key: 'EMERGENCY',
+          label: 'Emergency Numbers',
+        ),
+      ];
     } else if (heatIndex >= 41) {
       title = '🔴 Danger';
-      body = 'Heat index: ${heatIndex.round()}°C - Heat cramps/exhaustion likely';
+      body = 'Heat index: ${heatIndex.round()}°C\n'
+             '• Heat cramps/exhaustion likely\n'
+             '• Limit outdoor exposure\n'
+             '• Stay hydrated';
+      backgroundColor = Colors.red[700];
     } else if (heatIndex >= 32) {
       title = '🟠 Extreme Caution';
-      body = 'Heat index: ${heatIndex.round()}°C - Heat exhaustion possible';
+      body = 'Heat index: ${heatIndex.round()}°C\n'
+             '• Heat exhaustion possible\n'
+             '• Take frequent breaks\n'
+             '• Drink plenty of water';
+      backgroundColor = Colors.orange[700];
     } else if (heatIndex >= 27) {
       title = '🟡 Caution';
-      body = 'Heat index: ${heatIndex.round()}°C - Fatigue possible';
+      body = 'Heat index: ${heatIndex.round()}°C\n'
+             '• Fatigue possible\n'
+             '• Use caution with outdoor activities';
+      backgroundColor = Colors.yellow[700];
     } else {
       _logger.info('Normal heat index: $heatIndex, no notification needed');
       return;
     }
 
     try {
+      // Create a unique notification ID based on date and heat index
+      final int notificationId = DateTime.now().day * 1000000 + 
+                                (heatIndex * 100).round();
+
       await AwesomeNotifications().createNotification(
         content: NotificationContent(
-          id: DateTime.now().millisecond,
+          id: notificationId,
           channelKey: 'heat_index_channel',
           title: title,
           body: body,
           icon: 'resource://drawable/ic_notification',
-          notificationLayout: NotificationLayout.Default,
+          notificationLayout: NotificationLayout.BigText,
           criticalAlert: heatIndex >= 41,
           wakeUpScreen: heatIndex >= 41,
+          backgroundColor: backgroundColor,
+          category: NotificationCategory.Alarm,
+          groupKey: 'heat_index_alerts',
+          showWhen: true,
+          displayOnForeground: true,
+          displayOnBackground: true,
         ),
+        actionButtons: actionButtons,
       );
       
-      _hasShownNotificationThisSession = true;
-      _logger.info('Heat index notification shown successfully');
+      // Update tracking variables
+      _lastNotificationTime = DateTime.now();
+      _lastNotifiedHeatIndex = heatIndex;
+      _lastNotificationLevel = currentLevel;
+      _logger.info('Heat index notification shown successfully. Level: $currentLevel');
     } catch (e) {
       _logger.severe('Failed to show notification: $e');
     }
+  }
+
+  // Add this method to reset the cooldown if needed
+  void resetNotificationCooldown() {
+    _lastNotificationTime = null;
+    _lastNotifiedHeatIndex = null;
+    _lastNotificationLevel = null;
   }
 }

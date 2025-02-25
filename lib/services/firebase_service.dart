@@ -140,7 +140,7 @@ class FirebaseService {
       await FirebaseMessaging.instance.requestPermission(
         alert: true,
         badge: true,
-        sound: true,
+        sound: false,  // Change this to false
         criticalAlert: true,
       );
 

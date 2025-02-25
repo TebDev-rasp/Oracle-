@@ -1,14 +1,14 @@
 import 'dart:async';
-
-import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:logging/logging.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'notification_service.dart';
 
 class HeatIndexMonitor {
   static final _logger = Logger('HeatIndexMonitor');
   static bool _isMonitoring = false;
   static StreamSubscription<DatabaseEvent>? _subscription;
   static final DatabaseReference _database = FirebaseDatabase.instance.ref();
+  static final _notificationService = NotificationService();
 
   static Future<void> startMonitoring() async {
     if (_isMonitoring) {
@@ -47,69 +47,20 @@ class HeatIndexMonitor {
   }
 
   static Future<void> checkHeatIndex(double heatIndex) async {
-    // Add debug logging
     _logger.info('Checking heat index: $heatIndex');
     
-    String title;
-    String body;
-    bool isCritical;
-
-    if (heatIndex >= 54) {
-        title = 'Extreme Danger!';
-        body = 'Heat index is extremely high. Heat stroke highly likely.';
-        isCritical = true;
-    } else if (heatIndex >= 41) {
-        title = 'Danger!';
-        body = 'Heat cramps or heat exhaustion likely.';
-        isCritical = true;
-    } else if (heatIndex >= 32) {
-        title = 'Extreme Caution';
-        body = 'Heat exhaustion possible with prolonged exposure.';
-        isCritical = false;
-    } else if (heatIndex >= 27) {
-        title = 'Caution';
-        body = 'Fatigue possible with prolonged exposure.';
-        isCritical = false;
-    } else {
-        return;
-    }
-
-    try {
-        final bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
-        _logger.info('Notification permissions status: $isAllowed');
-        
-        await AwesomeNotifications().createNotification(
-            content: NotificationContent(
-                id: DateTime.now().millisecond,
-                channelKey: 'heat_index_channel',
-                title: title,
-                body: body,
-                notificationLayout: NotificationLayout.Default,
-                criticalAlert: isCritical,
-                category: NotificationCategory.Alarm,
-            ),
-        );
-        _logger.info('Heat index notification sent successfully');
-    } catch (e) {
-        _logger.severe('Failed to send notification: $e');
-    }
+    // Use NotificationService instead of direct notification
+    await _notificationService.showHeatIndexNotification(heatIndex);
   }
 }
 
 class DataService {
-  // ...existing code...
-
   Future<void> processNewData(Map<String, dynamic> data) async {
-    // ...existing data processing...
-
-    // Check heat index and send notification if needed
     if (data.containsKey('heat_index')) {
       final heatIndex = double.tryParse(data['heat_index'].toString());
       if (heatIndex != null) {
         await HeatIndexMonitor.checkHeatIndex(heatIndex);
       }
     }
-
-    // ...rest of existing code...
   }
 }
