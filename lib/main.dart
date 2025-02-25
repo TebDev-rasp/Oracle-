@@ -1,6 +1,8 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
+import 'package:oracle/services/connectivity_service.dart';
 import 'package:oracle/services/heat_index_monitor.dart';
+import 'package:oracle/widgets/connection_overlay.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:logging/logging.dart';
@@ -108,6 +110,9 @@ void main() async {
     runApp(
       MultiProvider(
         providers: [
+          ChangeNotifierProvider(
+            create: (_) => ConnectivityService(),
+          ),
           ChangeNotifierProvider(create: (_) => UserProfileProvider()),
           ChangeNotifierProvider(create: (_) => HistoricalDataProvider()),
         ],
@@ -132,11 +137,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Oracle',
-      debugShowCheckedModeBanner: false, // Removes debug banner
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        brightness: Brightness.light,
         useMaterial3: true,
       ),
       darkTheme: ThemeData(
@@ -145,7 +147,10 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.dark,
         useMaterial3: true,
       ),
-      themeMode: ThemeMode.system, // Adapt to system theme
+      themeMode: ThemeMode.system,
+      builder: (context, child) {
+        return NetworkAwareWidget(child: child ?? const SizedBox());
+      },
       home: const SplashScreen(),
     );
   }

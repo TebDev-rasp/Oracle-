@@ -69,17 +69,6 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          if (!widget.fromAccountDeletion) Positioned(
-            top: 48,
-            left: 8,
-            child: IconButton(
-              icon: Icon(
-                Icons.arrow_back,
-                color: isDarkMode ? Colors.white : const Color(0xFF111217),
-              ),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
           Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
