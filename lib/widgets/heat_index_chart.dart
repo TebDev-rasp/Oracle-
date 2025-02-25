@@ -23,7 +23,7 @@ class _HeatIndexChartState extends State<HeatIndexChart> {
   StreamSubscription<List<HeatIndexDataPoint>>? _realtimeSubscription;
 
   double _minX = 0;
-  double _maxX = 24;
+  double _maxX = 23; // Changed from 24 to 23
   double _minY = 25;
   double _maxY = 50;
   double _zoomLevel = 1.0;
@@ -103,9 +103,9 @@ class _HeatIndexChartState extends State<HeatIndexChart> {
 
   String _formatHourLabel(int hour) {
     if (_is24Hour) {
-      return hour == 24 ? '23:00' : '${hour.toString().padLeft(2, '0')}:00';
+      return '${hour.toString().padLeft(2, '0')}:00';
     } else {
-      if (hour == 0 || hour == 24) return '12:AM';
+      if (hour == 0) return '12:AM';
       if (hour == 12) return '12:PM';
       return hour > 12 
           ? '${(hour - 12)}:PM'
@@ -134,7 +134,7 @@ class _HeatIndexChartState extends State<HeatIndexChart> {
       final centerY = (_minY + _maxY) / 2;
       
       // Calculate new ranges
-      final xRange = 24 / _zoomLevel;
+      final xRange = 23 / _zoomLevel; // Changed from 24 to 23
       final yRange = 25 / _zoomLevel;
       
       // Update ranges around center point
@@ -144,8 +144,8 @@ class _HeatIndexChartState extends State<HeatIndexChart> {
       _maxY = centerY + (yRange / 2);
       
       // Ensure bounds
-      _minX = _minX.clamp(0.0, 23.0);
-      _maxX = _maxX.clamp(1.0, 24.0);
+      _minX = _minX.clamp(0.0, 22.0); // Changed from 23.0 to 22.0
+      _maxX = _maxX.clamp(1.0, 23.0); // Changed from 24.0 to 23.0
       _minY = _minY.clamp(25.0, 45.0);
       _maxY = _maxY.clamp(30.0, 50.0);
     });
@@ -327,9 +327,12 @@ class _HeatIndexChartState extends State<HeatIndexChart> {
                   sideTitles: SideTitles(
                     showTitles: true,
                     interval: 4,
+                    reservedSize: 22,
+           
                     getTitlesWidget: (double value, TitleMeta meta) {
                       int hour = value.toInt();
-                      if (hour % 4 != 0) return const Text('');
+                      // Change the condition to include 23
+                      if (hour % 4 != 0 && hour != 23) return const Text('');
                       return Text(
                         _formatHourLabel(hour),
                         style: const TextStyle(
