@@ -1,54 +1,59 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:logging/logging.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../models/heat_index_data_point.dart';
+import '../models/weather_data_point.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class HeatIndexDataService {
-  static final _logger = Logger('HeatIndexDataService');
+// Rename class to better reflect its purpose
+class WeatherDataService {
+  static final _logger = Logger('WeatherDataService');
   static final DatabaseReference _database = FirebaseDatabase.instance.ref();
 
-  // Get real-time heat index updates
-  static Stream<List<HeatIndexDataPoint>> getRealtimeHeatIndex() {
+  static Stream<List<WeatherDataPoint>> getRealtimeWeatherData() {
     return _database
         .child('hourly_records')
         .onValue
         .map((event) {
       if (event.snapshot.value == null) {
-        throw Exception('No heat index data available');
+        throw Exception('No weather data available');
       }
 
       try {
         final Map<dynamic, dynamic> data = event.snapshot.value as Map<dynamic, dynamic>;
-        List<HeatIndexDataPoint> points = [];
+        List<WeatherDataPoint> points = [];
 
-        // Process all hours
         data.forEach((hourKey, value) {
-          if (value is Map && 
-              value['heat_index'] is Map && 
-              value['heat_index']['celsius'] != null) {
-            
+          if (value is Map) {
             final hour = int.parse(hourKey.split(':')[0]);
-            final celsius = double.parse(
-              value['heat_index']['celsius'].toString()
-            );
+            
+            final heatIndex = value['heat_index']?['celsius'] != null 
+                ? double.parse(value['heat_index']['celsius'].toString())
+                : 0.0;
+                
+            final temperature = value['temperature']?['celsius'] != null
+                ? double.parse(value['temperature']['celsius'].toString())
+                : 0.0;
+                
+            final humidity = value['heat_index']?['humidity'] != null
+                ? double.parse(value['heat_index']['humidity'].toString())
+                : 0.0;
             
             final now = DateTime.now();
-            final timestamp = DateTime(
-              now.year, 
-              now.month, 
-              now.day, 
-              hour
-            );
+            final timestamp = DateTime(now.year, now.month, now.day, hour);
             
-            points.add(HeatIndexDataPoint(timestamp, celsius));
-            _logger.fine('Real-time value received for $hourKey: $celsius°C');
+            points.add(WeatherDataPoint(
+              timestamp: timestamp,
+              heatIndex: heatIndex,
+              temperature: temperature,
+              humidity: humidity,
+            ));
+            
+            _logger.fine('Real-time values for $hourKey: '
+                'HI: $heatIndex°C, Temp: $temperature°C, Humidity: $humidity%');
           }
         });
 
-        // Sort points by hour
         points.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-        
         return points;
       } catch (e) {
         _logger.warning('Error parsing real-time data: $e');
@@ -57,8 +62,8 @@ class HeatIndexDataService {
     });
   }
 
-  // Get historical heat index data for the past 24 hours
-  static Future<List<HeatIndexDataPoint>> get24HourHistory() async {
+  // Update return type to use WeatherDataPoint
+  static Future<List<WeatherDataPoint>> get24HourHistory() async {
     try {
       if (FirebaseAuth.instance.currentUser == null) {
         _logger.warning('User not authenticated');
@@ -69,50 +74,50 @@ class HeatIndexDataService {
           .child('hourly_records')
           .get();
       
-      _logger.info('Firebase response received: ${event.value != null}');
-
       if (event.value == null) {
         _logger.warning('No data available from Firebase');
         return [];
       }
 
-      final Map<dynamic, dynamic> data = 
-          event.value as Map<dynamic, dynamic>;
-      
-      List<HeatIndexDataPoint> points = [];
+      final Map<dynamic, dynamic> data = event.value as Map<dynamic, dynamic>;
+      List<WeatherDataPoint> points = [];
 
       data.forEach((key, value) {
         try {
-          if (value is Map && 
-              value['heat_index'] is Map && 
-              value['heat_index']['celsius'] != null) {
+          if (value is Map) {
             final hour = int.parse(key.split(':')[0]);
-            final celsius = double.parse(
-              value['heat_index']['celsius'].toString()
-            );
+            
+            final heatIndex = value['heat_index']?['celsius'] != null 
+                ? double.parse(value['heat_index']['celsius'].toString())
+                : 0.0;
+                
+            final temperature = value['temperature']?['celsius'] != null
+                ? double.parse(value['temperature']['celsius'].toString())
+                : 0.0;
+                
+            final humidity = value['heat_index']?['humidity'] != null
+                ? double.parse(value['heat_index']['humidity'].toString())
+                : 0.0;
             
             final now = DateTime.now();
-            final timestamp = DateTime(
-              now.year, 
-              now.month, 
-              now.day, 
-              hour
-            );
+            final timestamp = DateTime(now.year, now.month, now.day, hour);
             
-            points.add(HeatIndexDataPoint(timestamp, celsius));
-            _logger.fine('Added data point for hour $hour: $celsius°C');
+            points.add(WeatherDataPoint(
+              timestamp: timestamp,
+              heatIndex: heatIndex,
+              temperature: temperature,
+              humidity: humidity,
+            ));
           }
         } catch (e) {
           _logger.warning('Error processing data for hour $key: $e');
         }
       });
 
-      _logger.info('Processed ${points.length} data points');
-      
       points.sort((a, b) => a.timestamp.compareTo(b.timestamp));
       return points;
     } catch (e) {
-      _logger.severe('Error fetching heat index history: $e');
+      _logger.severe('Error fetching weather data: $e');
       return [];
     }
   }
@@ -145,19 +150,23 @@ class HeatIndexDataService {
   }
 
   // Convert HeatIndexDataPoint list to FlSpot list for FL Chart
-  static List<FlSpot> convertToFlSpots(List<HeatIndexDataPoint> points) {
-    _logger.info('Converting ${points.length} points to spots');
+  static List<FlSpot> convertToFlSpots(
+    List<WeatherDataPoint> points, 
+    String dataType // 'temperature', 'heatIndex', or 'humidity'
+  ) {
+    _logger.info('Converting ${points.length} points to spots for $dataType');
     
     final spots = points.map((point) {
       final hour = point.timestamp.hour.toDouble();
-      _logger.fine('Converting point: hour=$hour, value=${point.value}');
-      return FlSpot(hour, point.value);
+      final value = switch(dataType) {
+        'temperature' => point.temperature,
+        'humidity' => point.humidity,
+        _ => point.heatIndex,
+      };
+      return FlSpot(hour, value);
     }).toList();
 
-    // Sort spots by x value (hour)
     spots.sort((a, b) => a.x.compareTo(b.x));
-    
-    _logger.info('Created ${spots.length} spots');
     return spots;
   }
 }

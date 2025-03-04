@@ -4,7 +4,7 @@ import 'package:oracle/widgets/time_format_button.dart';
 import 'package:oracle/widgets/temperature_unit_button.dart';
 import 'package:logging/logging.dart';
 import '../services/heat_index_data_service.dart';
-import '../models/heat_index_data_point.dart';  // Add this import
+import '../models/weather_data_point.dart';  // Updated import
 import 'dart:async';
 
 class HeatIndexChart extends StatefulWidget {
@@ -19,8 +19,9 @@ class _HeatIndexChartState extends State<HeatIndexChart> {
   late TransformationController _transformationController;
   bool _is24Hour = true;
   TemperatureUnit _temperatureUnit = TemperatureUnit.celsius;
-  List<FlSpot> _spots = [];
-  StreamSubscription<List<HeatIndexDataPoint>>? _realtimeSubscription;
+  List<FlSpot> _heatIndexSpots = [];
+  List<FlSpot> _temperatureSpots = [];
+  StreamSubscription<List<WeatherDataPoint>>? _realtimeSubscription;
 
   double _minX = 0;
   double _maxX = 23; // Changed from 24 to 23
@@ -39,10 +40,9 @@ class _HeatIndexChartState extends State<HeatIndexChart> {
 
   Future<void> _loadHeatIndexData() async {
     try {
-      setState(() {
-      });
+      setState(() {});
 
-      final points = await HeatIndexDataService.get24HourHistory();
+      final points = await WeatherDataService.get24HourHistory();
       _logger.info('Loaded ${points.length} data points');
 
       if (points.isEmpty) {
@@ -50,43 +50,66 @@ class _HeatIndexChartState extends State<HeatIndexChart> {
       }
 
       setState(() {
-        _spots = HeatIndexDataService.convertToFlSpots(points);
+        _heatIndexSpots = points.map((point) {
+          final value = _temperatureUnit == TemperatureUnit.celsius
+              ? point.heatIndex
+              : _convertToFahrenheit(point.heatIndex);
+          return FlSpot(point.timestamp.hour.toDouble(), value);
+        }).toList();
+
+        _temperatureSpots = points.map((point) {
+          final value = _temperatureUnit == TemperatureUnit.celsius
+              ? point.temperature
+              : _convertToFahrenheit(point.temperature);
+          return FlSpot(point.timestamp.hour.toDouble(), value);
+        }).toList();
+
+        _heatIndexSpots.sort((a, b) => a.x.compareTo(b.x));
+        _temperatureSpots.sort((a, b) => a.x.compareTo(b.x));
       });
       
-      _logger.info('Spots created: ${_spots.length}');
+      _logger.info('Spots created: Heat Index: ${_heatIndexSpots.length}, Temperature: ${_temperatureSpots.length}');
     } catch (e) {
-      _logger.severe('Error loading heat index data: $e');
-      setState(() {
-      });
+      _logger.severe('Error loading weather data: $e');
+      setState(() {});
     }
   }
 
   void _subscribeToRealtimeUpdates() {
     _realtimeSubscription?.cancel();
     
-    _realtimeSubscription = HeatIndexDataService.getRealtimeHeatIndex().listen(
+    _realtimeSubscription = WeatherDataService.getRealtimeWeatherData().listen(
       (dataPoints) {
         if (!mounted) return;
         
         setState(() {
-          // Clear existing spots if needed
-          _spots.clear();
+          _heatIndexSpots.clear();
+          _temperatureSpots.clear();
           
-          // Convert each data point to FlSpot
           for (var point in dataPoints) {
-            _spots.add(FlSpot(
+            final heatIndexValue = _temperatureUnit == TemperatureUnit.celsius 
+                ? point.heatIndex
+                : _convertToFahrenheit(point.heatIndex);
+                
+            final temperatureValue = _temperatureUnit == TemperatureUnit.celsius 
+                ? point.temperature
+                : _convertToFahrenheit(point.temperature);
+                
+            _heatIndexSpots.add(FlSpot(
               point.timestamp.hour.toDouble(),
-              point.value
+              heatIndexValue
+            ));
+            
+            _temperatureSpots.add(FlSpot(
+              point.timestamp.hour.toDouble(),
+              temperatureValue
             ));
           }
           
-          // Sort spots by hour
-          _spots.sort((a, b) => a.x.compareTo(b.x));
+          _heatIndexSpots.sort((a, b) => a.x.compareTo(b.x));
+          _temperatureSpots.sort((a, b) => a.x.compareTo(b.x));
           
-          // Create new list reference to force rebuild
-          _spots = List<FlSpot>.from(_spots);
-          
-          _logger.info('Updated chart with ${_spots.length} data points');
+          _logger.info('Updated chart with ${_heatIndexSpots.length} data points');
         });
       },
       onError: (error) {
@@ -178,37 +201,24 @@ class _HeatIndexChartState extends State<HeatIndexChart> {
         bottom: 8.0
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Text(
-            'Heat Index Chart',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
+          TimeFormatButton(
+            is24Hour: _is24Hour,
+            onFormatChanged: (bool is24Hour) {
+              setState(() {
+                _is24Hour = is24Hour;
+              });
+            },
           ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TimeFormatButton(
-                is24Hour: _is24Hour,
-                onFormatChanged: (bool is24Hour) {
-                  setState(() {
-                    _is24Hour = is24Hour;
-                  });
-                },
-              ),
-              const SizedBox(width: 2),  // Reduced space between buttons
-              TemperatureUnitButton(
-                currentUnit: _temperatureUnit,
-                onUnitChanged: (TemperatureUnit unit) {
-                  setState(() {
-                    _temperatureUnit = unit;
-                  });
-                },
-              ),
-            ],
+          const SizedBox(width: 2),  // Reduced space between buttons
+          TemperatureUnitButton(
+            currentUnit: _temperatureUnit,
+            onUnitChanged: (TemperatureUnit unit) {
+              setState(() {
+                _temperatureUnit = unit;
+              });
+            },
           ),
         ],
       ),
@@ -216,7 +226,7 @@ class _HeatIndexChartState extends State<HeatIndexChart> {
   }
 
   Widget _buildChart() {
-    if (_spots.isEmpty) {
+    if (_heatIndexSpots.isEmpty || _temperatureSpots.isEmpty) {
       return const Center(
         child: CircularProgressIndicator(),
       );
@@ -297,29 +307,65 @@ class _HeatIndexChartState extends State<HeatIndexChart> {
                 ),
               ),
               lineBarsData: [
+                // Heat Index Line
                 LineChartBarData(
-                  spots: _spots,
-                  isCurved: true,
+                  spots: _heatIndexSpots.where((spot) => spot.y > 0).toList(),
+                  isCurved: false,
                   color: Colors.orange,
                   barWidth: 3,
-                  dotData: FlDotData(show: false),
-                  belowBarData: BarAreaData(
+                  dotData: FlDotData(
                     show: true,
-                    color: Colors.orange.withAlpha(50),
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.orange.withAlpha(45),  // 0.3 opacity (0.3 * 255 ≈ 77)
-                        Colors.orange.withAlpha(15),   // 0.1 opacity (0.1 * 255 ≈ 26)
-                      ],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
+                    checkToShowDot: (spot, barData) {
+                      final hour = spot.x.toInt();
+                      return hour % 4 == 0 || hour == 23;
+                    },
+                    getDotPainter: (spot, percent, barData, index) {
+                      return FlDotCirclePainter(
+                        radius: 4,
+                        color: Colors.orange,
+                        strokeWidth: 2,
+                        strokeColor: Colors.orange,
+                      );
+                    },
+                  ),
+                  belowBarData: BarAreaData(
+                    show: false,
                   ),
                   isStrokeCapRound: true,
                   isStrokeJoinRound: true,
-                  preventCurveOverShooting: true,
-                  curveSmoothness: 0.5,  // Increased for smoother curves
-                  preventCurveOvershootingThreshold: 5.0,  // Added to prevent sharp peaks
+                  preventCurveOverShooting: false,  // Not needed for straight lines
+                  curveSmoothness: 0.0,  // Not needed for straight lines
+                  preventCurveOvershootingThreshold: 0.0,  // Not needed for straight lines
+                ),
+                // Temperature Line
+                LineChartBarData(
+                  spots: _temperatureSpots.where((spot) => spot.y > 0).toList(),
+                  isCurved: false,
+                  color: Colors.blue,
+                  barWidth: 3,
+                  dotData: FlDotData(
+                    show: true,
+                    checkToShowDot: (spot, barData) {
+                      final hour = spot.x.toInt();
+                      return hour % 4 == 0 || hour == 23;
+                    },
+                    getDotPainter: (spot, percent, barData, index) {
+                      return FlDotCirclePainter(
+                        radius: 4,
+                        color: Colors.blue,
+                        strokeWidth: 2,
+                        strokeColor: Colors.blue,
+                      );
+                    },
+                  ),
+                  belowBarData: BarAreaData(
+                    show: false,
+                  ),
+                  isStrokeCapRound: true,
+                  isStrokeJoinRound: true,
+                  preventCurveOverShooting: false,  // Not needed for straight lines
+                  curveSmoothness: 0.0,  // Not needed for straight lines
+                  preventCurveOvershootingThreshold: 0.0,  // Not needed for straight lines
                 ),
               ],
               titlesData: FlTitlesData(
@@ -328,7 +374,6 @@ class _HeatIndexChartState extends State<HeatIndexChart> {
                     showTitles: true,
                     interval: 4,
                     reservedSize: 22,
-           
                     getTitlesWidget: (double value, TitleMeta meta) {
                       int hour = value.toInt();
                       // Change the condition to include 23
