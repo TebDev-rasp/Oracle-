@@ -28,21 +28,20 @@ class HourlyRecord {
     }
   }
 
-  factory HourlyRecord.fromMap(String time, Map<String, dynamic> map) {
+  factory HourlyRecord.fromMap(String time, Map<dynamic, dynamic> map) {
     try {
-      // Use the time directly if it's already in correct format
-      final formattedTime = time.contains(':') ? time : _formatTime(time);
+      // Safely cast the nested maps
+      final heatIndex = (map['heat_index'] as Map<dynamic, dynamic>?) ?? {};
+      final temperature = (map['temperature'] as Map<dynamic, dynamic>?) ?? {};
       
       return HourlyRecord(
-        time: formattedTime,
-        heatIndexCelsius: (map['heat_index']['celsius'] as num).toDouble(),
-        heatIndexFahrenheit: (map['heat_index']['fahrenheit'] as num).toDouble(),
-        humidity: (map['humidity'] as num).toDouble(),
-        temperatureCelsius: (map['temperature']['celsius'] as num).toDouble(),
-        temperatureFahrenheit: (map['temperature']['fahrenheit'] as num).toDouble(),
-        timestamp: (map['timestamp'] is int) 
-            ? map['timestamp'] as int 
-            : (map['timestamp'] as num).toInt(),
+        time: _formatTime(time),
+        heatIndexCelsius: double.tryParse(heatIndex['celsius']?.toString() ?? '0') ?? 0.0,
+        heatIndexFahrenheit: double.tryParse(heatIndex['fahrenheit']?.toString() ?? '0') ?? 0.0,
+        humidity: double.tryParse(heatIndex['humidity']?.toString() ?? '0') ?? 0.0,
+        temperatureCelsius: double.tryParse(temperature['celsius']?.toString() ?? '0') ?? 0.0,
+        temperatureFahrenheit: double.tryParse(temperature['fahrenheit']?.toString() ?? '0') ?? 0.0,
+        timestamp: int.tryParse(temperature['timestamp']?.toString() ?? '0') ?? 0,
       );
     } catch (e) {
       _logger.warning('Error parsing record for time $time: $e');
