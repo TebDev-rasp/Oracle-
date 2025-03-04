@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:oracle/widgets/heat_index_leaflet.dart';
 
 class CachingTileProvider extends TileProvider {
   final BaseCacheManager cacheManager;
@@ -28,7 +29,8 @@ class MapWidget extends StatefulWidget {
 
 class _MapWidgetState extends State<MapWidget> {
   final MapController _mapController = MapController();
-  final castillejosLocation = LatLng(14.93363, 120.19785);
+  // Updated coordinates for San Nicolas, Castillejos
+  final castillejosLocation = LatLng(14.9320671, 120.2005402);
   bool isLoading = true;
 
   @override
@@ -47,7 +49,7 @@ class _MapWidgetState extends State<MapWidget> {
           mapController: _mapController,
           options: MapOptions(
             initialCenter: castillejosLocation,
-            initialZoom: 13,
+            initialZoom: 15, // Increased from 13 for better local detail
             onMapReady: () {
               setState(() {
                 isLoading = false;
@@ -64,6 +66,11 @@ class _MapWidgetState extends State<MapWidget> {
               additionalOptions: const {
                 'attribution': '\u003ca href="https://www.maptiler.com/copyright/" target="_blank"\u003e\u0026copy; MapTiler\u003c/a\u003e',
               },
+            ),
+            HeatIndexLeaflet(
+              heatIndex: 32.2,
+              markerColor: Colors.orange,
+              heatIndexLevel: 'Extreme Caution',
             ),
           ],
         ),
