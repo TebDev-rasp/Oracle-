@@ -32,6 +32,14 @@ class _MapWidgetState extends State<MapWidget> {
   bool isLoading = true;
 
   @override
+  void dispose() {
+    _mapController.dispose();
+    // Cancel any active subscriptions if you have any
+    // _subscription?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
@@ -48,14 +56,13 @@ class _MapWidgetState extends State<MapWidget> {
           ),
           children: [
             TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              urlTemplate: 'https://api.maptiler.com/maps/basic-v2/256/{z}/{x}/{y}.png?key=U1ZGZGT5WX7HvfCaRryf',
               userAgentPackageName: 'com.example.app',
               tileProvider: CachingTileProvider(),
-              maxZoom: 19,
+              maxZoom: 20,
               minZoom: 1,
-              // Add attribution for OSM
               additionalOptions: const {
-                'attribution': '© OpenStreetMap contributors',
+                'attribution': '\u003ca href="https://www.maptiler.com/copyright/" target="_blank"\u003e\u0026copy; MapTiler\u003c/a\u003e',
               },
             ),
           ],
