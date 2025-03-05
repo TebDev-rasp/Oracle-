@@ -18,7 +18,7 @@ class TemperatureContainer extends StatefulWidget {
 
 class _TemperatureContainerState extends State<TemperatureContainer> {
   static const double valueFontSize = 64.0;
-  bool showFahrenheit = true;
+  bool showFahrenheit = false;
 
   @override
   Widget build(BuildContext context) {

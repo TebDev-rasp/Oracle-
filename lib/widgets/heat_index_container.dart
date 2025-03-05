@@ -24,7 +24,7 @@ class HeatIndexContainer extends StatefulWidget {
 }
 
 class _HeatIndexContainerState extends State<HeatIndexContainer> {
-  bool showFahrenheit = true;
+  bool showFahrenheit = false;  // Changed from true to false
 
   String _getComfortStatus() {
     return ComfortLevel.getStatus(widget.heatIndex.value);

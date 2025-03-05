@@ -195,30 +195,79 @@ class _HeatIndexChartState extends State<HeatIndexChart> {
   Widget _buildChartControls() {
     return Padding(
       padding: const EdgeInsets.only(
-        left: 0.0,
-        right: 12.0,  // Reduced right padding to align with chart
+        left: 12.0,
+        right: 12.0,
         top: 8.0,
         bottom: 8.0
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween, // Changed to spaceBetween
         children: [
-          TimeFormatButton(
-            is24Hour: _is24Hour,
-            onFormatChanged: (bool is24Hour) {
-              setState(() {
-                _is24Hour = is24Hour;
-              });
-            },
+          // Legend moved here
+          Row(
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: Colors.orange,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Text('Heat-Index',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 16),
+              Row(
+                children: [
+                  Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Text('Temperature',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          const SizedBox(width: 2),  // Reduced space between buttons
-          TemperatureUnitButton(
-            currentUnit: _temperatureUnit,
-            onUnitChanged: (TemperatureUnit unit) {
-              setState(() {
-                _temperatureUnit = unit;
-              });
-            },
+          // Original buttons
+          Row(
+            children: [
+              TimeFormatButton(
+                is24Hour: _is24Hour,
+                onFormatChanged: (bool is24Hour) {
+                  setState(() {
+                    _is24Hour = is24Hour;
+                  });
+                },
+              ),
+              const SizedBox(width: 2),
+              TemperatureUnitButton(
+                currentUnit: _temperatureUnit,
+                onUnitChanged: (TemperatureUnit unit) {
+                  setState(() {
+                    _temperatureUnit = unit;
+                  });
+                },
+              ),
+            ],
           ),
         ],
       ),
@@ -241,7 +290,7 @@ class _HeatIndexChartState extends State<HeatIndexChart> {
           _handleZoom(_initialZoomLevel * details.scale);
         });
       },
-      child: AspectRatio(
+      child: AspectRatio(  // Changed to direct AspectRatio
         aspectRatio: 1.4,
         child: Padding(
           padding: const EdgeInsets.only(right: 18, left: 12),
@@ -321,15 +370,23 @@ class _HeatIndexChartState extends State<HeatIndexChart> {
                     },
                     getDotPainter: (spot, percent, barData, index) {
                       return FlDotCirclePainter(
-                        radius: 4,
+                        radius: 2.5,  // Reduced from 4
                         color: Colors.orange,
-                        strokeWidth: 2,
+                        strokeWidth: 1.5,  // Reduced from 2
                         strokeColor: Colors.orange,
                       );
                     },
                   ),
                   belowBarData: BarAreaData(
-                    show: false,
+                    show: true,
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.orange.withAlpha(25),
+                        Colors.orange.withAlpha(0),
+                      ],
+                    ),
                   ),
                   isStrokeCapRound: true,
                   isStrokeJoinRound: true,
@@ -351,15 +408,23 @@ class _HeatIndexChartState extends State<HeatIndexChart> {
                     },
                     getDotPainter: (spot, percent, barData, index) {
                       return FlDotCirclePainter(
-                        radius: 4,
+                        radius: 2.5,  // Reduced from 4
                         color: Colors.blue,
-                        strokeWidth: 2,
+                        strokeWidth: 1.5,  // Reduced from 2
                         strokeColor: Colors.blue,
                       );
                     },
                   ),
                   belowBarData: BarAreaData(
-                    show: false,
+                    show: true,
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.blue.withAlpha(25),  // 0.3 * 255 ≈ 76
+                        Colors.blue.withAlpha(0),
+                      ],
+                    ),
                   ),
                   isStrokeCapRound: true,
                   isStrokeJoinRound: true,

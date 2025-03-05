@@ -1,5 +1,6 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
+import 'package:oracle/providers/temperature_unit_provider.dart';
 import 'package:oracle/services/connectivity_service.dart';
 import 'package:oracle/services/heat_index_monitor.dart';
 import 'package:oracle/widgets/connection_overlay.dart';
@@ -115,6 +116,9 @@ void main() async {
           ),
           ChangeNotifierProvider(create: (_) => UserProfileProvider()),
           ChangeNotifierProvider(create: (_) => HistoricalDataProvider()),
+          ChangeNotifierProvider(
+            create: (_) => TemperatureUnitProvider(),
+          ),
         ],
         child: const MyApp(),
       ),
