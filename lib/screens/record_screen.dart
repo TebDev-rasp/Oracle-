@@ -44,10 +44,31 @@ class _RecordScreenState extends State<RecordScreen> with WidgetsBindingObserver
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
       drawer: const SidebarMenu(),
       appBar: AppBar(
-        title: const Text('Record'),
+        title: const Text(
+          'Record',
+          style: TextStyle(
+            fontSize: 16.0,
+            fontWeight: FontWeight.bold
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: isDarkMode ? const Color(0xFF1A1A1A) : Colors.white,
+        elevation: 0,
+        toolbarHeight: 65,
+        leadingWidth: 65,
+        titleSpacing: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(2.0),  // Height of the divider
+          child: Container(
+            color: isDarkMode ? Colors.grey[900] : Colors.grey[300],
+            height: 2.0,  // Thickness of the divider
+          ),
+        ),
       ),
       body: const HourlyRecordView(),
     );

@@ -111,14 +111,12 @@ void main() async {
     runApp(
       MultiProvider(
         providers: [
+          ChangeNotifierProvider(create: (_) => TemperatureUnitProvider()),
           ChangeNotifierProvider(
             create: (_) => ConnectivityService(),
           ),
           ChangeNotifierProvider(create: (_) => UserProfileProvider()),
           ChangeNotifierProvider(create: (_) => HistoricalDataProvider()),
-          ChangeNotifierProvider(
-            create: (_) => TemperatureUnitProvider(),
-          ),
         ],
         child: const MyApp(),
       ),
@@ -142,6 +140,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Oracle',
       debugShowCheckedModeBanner: false,
+      initialRoute: '/',  // Add this line
       theme: ThemeData(
         useMaterial3: true,
       ),

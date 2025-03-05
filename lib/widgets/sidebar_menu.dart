@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:oracle/providers/temperature_unit_provider.dart';
 import 'package:oracle/screens/home_screen.dart';
 import 'package:oracle/widgets/user_avatar_edit.dart';
 import 'package:provider/provider.dart';
@@ -7,9 +8,18 @@ import 'sign_out_tile.dart';
 import 'user_avatar.dart';
 import 'delete_account_tile.dart';
 import '../providers/user_profile_provider.dart';
+import 'temperature_unit_toggle.dart';
 
-class SidebarMenu extends StatelessWidget {
+// Change from StatelessWidget to StatefulWidget
+class SidebarMenu extends StatefulWidget {
   const SidebarMenu({super.key});
+
+  @override
+  State<SidebarMenu> createState() => _SidebarMenuState();
+}
+
+class _SidebarMenuState extends State<SidebarMenu> {
+// Add state variable
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +79,11 @@ class SidebarMenu extends StatelessWidget {
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
+                  Divider(  // Add this divider above Home button
+                    color: isDarkMode ? Colors.grey[900] : Colors.grey[300],
+                    thickness: 1.0,
+                    height: 1.0,
+                  ),
                   ListTile(
                     leading: Icon(
                       Icons.home_outlined,
@@ -126,6 +141,36 @@ class SidebarMenu extends StatelessWidget {
                         );
                       }
                     },
+                  ),
+                  Divider(  // Existing divider below Record button
+                    color: isDarkMode ? Colors.grey[900] : Colors.grey[300],
+                    thickness: 2.0,
+                    height: 2.0,
+                  ),
+                  ListTile(
+                    leading: Icon(
+                      Icons.square_foot,
+                      color: isDarkMode ? Colors.white : Colors.black87,
+                    ),
+                    title: Text(
+                      'Unit',
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    onTap: () {
+                      final provider = Provider.of<TemperatureUnitProvider>(context, listen: false);
+                      provider.setFahrenheit(!provider.isFahrenheit);
+                      Navigator.pop(context);  // Close sidebar when clicking the unit button
+                    },
+                    trailing: TemperatureUnitToggle(
+                      isDarkMode: isDarkMode,
+                    ),
+                  ),
+                  Divider(
+                    color: isDarkMode ? Colors.grey[900] : Colors.grey[300],
+                    thickness: 2.0,
+                    height: 2.0,
                   ),
                 ],
               ),

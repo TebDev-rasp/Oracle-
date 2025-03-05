@@ -49,8 +49,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     final userProfile = Provider.of<UserProfileProvider>(context, listen: false);
     
     if (userProfile.isLoggedIn) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const HomeScreen(),
+          settings: const RouteSettings(name: '/'),  // Add this line
+        ),
       );
     } else {
       Navigator.of(context).pushReplacement(

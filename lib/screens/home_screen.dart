@@ -68,27 +68,68 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             ),
           ),
         ),
+        title: SizedBox(
+          width: double.infinity,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Text(
+                    'Oracle',
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    '°',
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const Text(
+                'Castillejos, PH',
+                style: TextStyle(
+                  fontSize: 14.0,  // Slightly smaller
+                  fontWeight: FontWeight.w500,  // Slightly less bold
+                ),
+              ),
+            ],
+          ),
+        ),
+        centerTitle: true,
+        titleSpacing: NavigationToolbar.kMiddleSpacing + 20, // Adjust for the actions width
+        actions: [
+          SizedBox(
+            width: 100, // Fixed width for actions
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Flexible(
+                  child: Text(
+                    context.watch<UserProfileProvider>().username ?? 'User',
+                    style: Theme.of(context).textTheme.titleMedium,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                UserAvatar(
+                  size: 32,
+                  onTap: () {},
+                  inAppBar: true,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 16), // Right padding
+        ],
         backgroundColor: isDarkMode ? const Color(0xFF1A1A1A) : Colors.white,
         elevation: 0,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Center(
-              child: Text(
-                context.watch<UserProfileProvider>().username ?? 'User',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: UserAvatar(
-              size: 32,
-              onTap: () {},
-              inAppBar: true,
-            ),
-          ),
-        ],
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
