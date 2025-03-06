@@ -9,7 +9,6 @@ import '../widgets/heat_index_container.dart';
 import '../providers/user_profile_provider.dart';
 import '../widgets/temperature_container.dart';
 import '../widgets/humidity_container.dart';
-import '../widgets/user_avatar.dart';
 import '../widgets/heat_index_chart.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -45,11 +44,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     
     return Scaffold(
       backgroundColor: isDarkMode ? null : const Color(0xFFFAFAFA),
+      drawer: const SidebarMenu(), // Add this line to enable the sidebar
       appBar: AppBar(
         toolbarHeight: 80,
         leading: Builder(
           builder: (context) => Container(
-            margin: const EdgeInsets.all(8),
+            margin: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
             child: Material(
               type: MaterialType.circle,
               clipBehavior: Clip.hardEdge,
@@ -68,12 +68,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             ),
           ),
         ),
-        title: SizedBox(
-          width: double.infinity,
+        title: Center(  // Wrap with Center widget
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Row(
+                mainAxisSize: MainAxisSize.min,  // Important for proper centering
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: const [
                   Text(
@@ -95,38 +95,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               const Text(
                 'Castillejos, PH',
                 style: TextStyle(
-                  fontSize: 14.0,  // Slightly smaller
-                  fontWeight: FontWeight.w500,  // Slightly less bold
+                  fontSize: 14.0,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
           ),
         ),
         centerTitle: true,
-        titleSpacing: NavigationToolbar.kMiddleSpacing + 20, // Adjust for the actions width
-        actions: [
-          SizedBox(
-            width: 100, // Fixed width for actions
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Flexible(
-                  child: Text(
-                    context.watch<UserProfileProvider>().username ?? 'User',
-                    style: Theme.of(context).textTheme.titleMedium,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                UserAvatar(
-                  size: 32,
-                  onTap: () {},
-                  inAppBar: true,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 16), // Right padding
+        actions: const [
+          SizedBox(width: 48),  // Keep this to balance with the leading icon
         ],
         backgroundColor: isDarkMode ? const Color(0xFF1A1A1A) : Colors.white,
         elevation: 0,
@@ -138,7 +116,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ],
         ),
       ),
-      drawer: const SidebarMenu(),
       body: TabBarView(
         controller: _tabController,
         children: [

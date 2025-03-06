@@ -14,6 +14,8 @@ import 'providers/historical_data_provider.dart';
 import 'services/notification_service.dart';
 import 'services/firebase_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -77,6 +79,9 @@ void main() async {
 
     await Firebase.initializeApp();
     
+    // Initialize SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    
     // Initialize services with error handling
     try {
       await NotificationService().initialize();
@@ -115,7 +120,24 @@ void main() async {
           ChangeNotifierProvider(
             create: (_) => ConnectivityService(),
           ),
-          ChangeNotifierProvider(create: (_) => UserProfileProvider()),
+          ChangeNotifierProvider(
+            create: (context) {
+              final provider = UserProfileProvider();
+              // Initialize profile with current user's ID
+              FirebaseAuth.instance.authStateChanges().listen((user) {
+                if (user != null) {
+                  provider.initializeProfile(user.uid).then((_) {
+                    // Load saved profile image path from SharedPreferences
+                    final savedImagePath = prefs.getString('profile_image_${user.uid}');
+                    if (savedImagePath != null) {
+                      provider.loadSavedProfileImage(savedImagePath);
+                    }
+                  });
+                }
+              });
+              return provider;
+            },
+          ),
           ChangeNotifierProvider(create: (_) => HistoricalDataProvider()),
         ],
         child: const MyApp(),

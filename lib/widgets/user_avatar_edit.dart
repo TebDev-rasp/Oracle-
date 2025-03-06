@@ -148,11 +148,10 @@ class _AvatarEditMenuState extends State<AvatarEditMenu> {
               final image = await _picker.pickImageFromGallery();
               if (image != null) {
                 final file = File(image.path);
+                // First update the UI
+                profileProvider.updateProfileImage(file);
+                // Then upload to storage
                 await _imageService.uploadImageAsBase64(file, userId);
-                final base64Image = await _imageService.getImageBase64(userId);
-                if (base64Image != null) {
-                  profileProvider.updateProfileImage(file);
-                }
               }
             });
             break;
@@ -162,11 +161,10 @@ class _AvatarEditMenuState extends State<AvatarEditMenu> {
               final photo = await _picker.takePhoto();
               if (photo != null) {
                 final file = File(photo.path);
+                // First update the UI
+                profileProvider.updateProfileImage(file);
+                // Then upload to storage
                 await _imageService.uploadImageAsBase64(file, userId);
-                final base64Image = await _imageService.getImageBase64(userId);
-                if (base64Image != null) {
-                  profileProvider.updateProfileImage(file);
-                }
               }
             });
             break;
@@ -174,7 +172,7 @@ class _AvatarEditMenuState extends State<AvatarEditMenu> {
           case 'remove':
             await handleImageOperation(contextFromBuild, () async {
               await _imageService.deleteImageBase64(userId);
-              profileProvider.updateProfileImage(null);
+              await profileProvider.clearProfileImage(); // Changed from updateProfileImage(null)
             });
             break;
         }

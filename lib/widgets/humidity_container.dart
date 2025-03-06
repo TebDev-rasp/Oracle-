@@ -41,8 +41,8 @@ class HumidityContainer extends StatelessWidget {
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
               colors: [
-                Color(0xFFFFE5B4),
-                Color(0xFFFFDAB9),
+                Color(0xFFFFC067),  // Base orange from heat index
+                Color(0xFFFFDEAF),  // Lighter orange from heat index
               ],
             ),
             borderRadius: BorderRadius.circular(2),

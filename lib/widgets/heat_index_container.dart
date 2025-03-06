@@ -50,7 +50,7 @@ class _HeatIndexContainerState extends State<HeatIndexContainer> {
             Padding(
               padding: const EdgeInsets.only(top: 15, bottom: 10),
               child: Text(
-                'Heat-Index',
+                'RealFeel',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -80,15 +80,17 @@ class _HeatIndexContainerState extends State<HeatIndexContainer> {
               ),
               child: Stack(
                 children: [
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    child: Text(
-                      _getComfortStatus(),
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: HeatIndexColors.getTextColor(widget.heatIndex.value),
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        _getComfortStatus(),
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: HeatIndexColors.getTextColor(widget.heatIndex.value),
+                        ),
                       ),
                     ),
                   ),
@@ -148,7 +150,8 @@ class _HeatIndexContainerState extends State<HeatIndexContainer> {
                         child: Text(
                           _getRiskLevel(),
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
                             color: HeatIndexColors.getTextColor(widget.heatIndex.value),
                           ),
                           textAlign: TextAlign.center,

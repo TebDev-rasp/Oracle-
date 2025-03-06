@@ -53,8 +53,8 @@ class _TemperatureContainerState extends State<TemperatureContainer> {
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                   colors: [
-                    Color(0xFFFFC8DD),
-                    Color(0xFFFFAFCC),
+                    Color(0xFF0BB4FF),    // Base blue color
+                    Color(0xFFCCEFFF),    // Lighter shade of blue (more similar to HeatIndex style)
                   ],
                 ),
                 borderRadius: BorderRadius.circular(2),

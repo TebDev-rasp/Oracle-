@@ -171,7 +171,7 @@ class _HeatIndexTableState extends State<HeatIndexTable> with SingleTickerProvid
                     ),
                     children: [
                       _buildHeaderCell('Time', fontSize, verticalPadding),
-                      _buildHeaderCell('Heat Index', fontSize, verticalPadding),
+                      _buildHeaderCell('RealFeel', fontSize, verticalPadding),
                       _buildHeaderCell('Status', fontSize, verticalPadding),
                     ],
                   ),

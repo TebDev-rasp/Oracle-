@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:oracle/providers/temperature_unit_provider.dart';
 import 'package:oracle/screens/home_screen.dart';
+import 'package:oracle/widgets/user_avatar.dart';
 import 'package:oracle/widgets/user_avatar_edit.dart';
 import 'package:provider/provider.dart';
 import 'package:oracle/screens/record_screen.dart';
 import 'sign_out_tile.dart';
-import 'user_avatar.dart';
 import 'delete_account_tile.dart';
 import '../providers/user_profile_provider.dart';
 import 'temperature_unit_toggle.dart';
@@ -55,9 +55,12 @@ class _SidebarMenuState extends State<SidebarMenu> {
                             width: 3.0,
                           ),
                         ),
-                        child: UserAvatar(
-                          size: 160,
-                          onTap: () {},
+                        child: Center( // Added Center widget
+                          child: UserAvatar(
+                            size: 156,
+                            onTap: () {},
+                            isEditable: false,
+                          ),
                         ),
                       ),
                       Positioned(
@@ -69,7 +72,7 @@ class _SidebarMenuState extends State<SidebarMenu> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    context.watch<UserProfileProvider>().username ?? 'User',
+                    context.watch<UserProfileProvider>().username,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ],

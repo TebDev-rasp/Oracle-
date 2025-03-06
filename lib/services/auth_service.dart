@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:logging/logging.dart';
+import 'package:oracle/services/avatar_service.dart';
+import 'package:oracle/services/image_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -45,74 +47,33 @@ class AuthService {
     }
   }
 
-  Future<UserCredential> register(String email, String password, String username) async {
-    _logger.info('Starting registration process');
-    
-    // Input validation
-    if (!isEmail(email)) {
-      _logger.warning('Invalid email format');
-      throw FirebaseAuthException(
-        code: 'invalid-email',
-        message: 'Please enter a valid email address',
-      );
-    }
-
-    // Check username format (you can modify these requirements)
-    if (username.length < 3 || username.length > 20 || !RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(username)) {
-      throw FirebaseAuthException(
-        code: 'invalid-username',
-        message: 'Username must be 3-20 characters long and contain only letters, numbers, and underscores',
-      );
-    }
-
+  Future<UserCredential> register(String email, String username, String password) async {
     try {
-      // Check if username already exists
-      final usernameSnapshot = await _database
-          .child('usernames')
-          .orderByChild('username')
-          .equalTo(username)
-          .get();
-
-      if (usernameSnapshot.exists) {
-        _logger.warning('Username already exists');
-        throw FirebaseAuthException(
-          code: 'username-exists',
-          message: 'This username is already taken',
-        );
-      }
-
-      _logger.info('Username check passed');
-
-      // Create authentication account
       final userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email.trim(),
+        email: email,
         password: password,
       );
 
-      _logger.info('Auth account created');
+      if (userCredential.user != null) {
+        // Create user profile
+        await _database.child('users').child(userCredential.user!.uid).set({
+          'username': username,
+          'email': email,
+        });
 
-      // Store username mapping
-      await _database.child('usernames').child(userCredential.user!.uid).set({
-        'username': username,
-        'email': email,
-        'createdAt': ServerValue.timestamp,
-      });
-
-      // Store user data
-      await _database.child('users').child(userCredential.user!.uid).set({
-        'username': username,
-        'email': email,
-        'createdAt': ServerValue.timestamp,
-        'profile': {
-          'displayName': username,
-          'photoURL': ''
+        // Generate and save random avatar
+        final avatarService = AvatarService();
+        final avatarFile = await avatarService.generateRandomAvatar(userCredential.user!.uid);
+        
+        if (avatarFile != null) {
+          final imageService = ImageService();
+          await imageService.uploadImageAsBase64(avatarFile, userCredential.user!.uid);
         }
-      });
+      }
 
-      _logger.info('User data stored successfully');
       return userCredential;
     } catch (e) {
-      _logger.severe('Registration error', e);
+      _logger.severe('Error during registration', e);
       rethrow;
     }
   }
