@@ -360,7 +360,7 @@ class _HeatIndexChartState extends State<HeatIndexChart> {
                     reservedSize: 22,
                     getTitlesWidget: (double value, TitleMeta meta) {
                       int hour = value.toInt();
-                      // Change the condition to include 23
+                      if (hour % 4 != 0 && hour != 23) return const Text('');
                       if (hour % 4 != 0 && hour != 23) return const Text('');
                       return Text(
                         _formatHourLabel(hour),

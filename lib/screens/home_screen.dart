@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:oracle/models/heat_index_data.dart';
-import 'package:oracle/models/temperature_data.dart';
 import 'package:oracle/models/humidity_data.dart';
 import 'package:oracle/widgets/map_placeholder.dart';
 import 'package:provider/provider.dart';
 import '../widgets/sidebar_menu.dart';
 import '../widgets/heat_index_container.dart';
 import '../providers/user_profile_provider.dart';
-import '../widgets/temperature_container.dart';
-import '../widgets/humidity_container.dart';
-import '../widgets/heat_index_chart.dart';
+import '../widgets/hth_chart.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,20 +17,28 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  bool isFahrenheit = false;  // Changed from true to false
+  bool isFahrenheit = false;
   late final Humidity _humidityProvider;
+
+  // Modified sample data generator
+  Map<String, double> _generateSampleData() {
+    return {
+      'value': 20.0,
+      'celsius': 25.0
+    };
+  }
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _humidityProvider = Humidity();  // Create single instance
+    _humidityProvider = Humidity(value: _generateSampleData()['value']!);
   }
 
   @override
   void dispose() {
     _tabController.dispose();
-    _humidityProvider.dispose();  // Dispose of the Humidity instance
+    _humidityProvider.dispose();
     super.dispose();
   }
 
@@ -44,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     
     return Scaffold(
       backgroundColor: isDarkMode ? null : const Color(0xFFFAFAFA),
-      drawer: const SidebarMenu(), // Add this line to enable the sidebar
+      drawer: const SidebarMenu(),
       appBar: AppBar(
         toolbarHeight: 80,
         leading: Builder(
@@ -68,12 +73,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             ),
           ),
         ),
-        title: Center(  // Wrap with Center widget
+        title: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Row(
-                mainAxisSize: MainAxisSize.min,  // Important for proper centering
+                mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: const [
                   Text(
@@ -104,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         ),
         centerTitle: true,
         actions: const [
-          SizedBox(width: 48),  // Keep this to balance with the leading icon
+          SizedBox(width: 48),
         ],
         backgroundColor: isDarkMode ? const Color(0xFF1A1A1A) : Colors.white,
         elevation: 0,
@@ -126,11 +131,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(24.0, 0.0, 24.0, 24.0), // Reduced top padding
+                padding: const EdgeInsets.fromLTRB(24.0, 0.0, 24.0, 24.0),
                 child: Column(
                   children: [
                     ChangeNotifierProvider(
-                      create: (_) => HeatIndex(),
+                      create: (_) => HeatIndex(
+                        value: _generateSampleData()['value']!,
+                        celsius: _generateSampleData()['celsius']!
+                      ),
                       child: Consumer<HeatIndex>(
                         builder: (context, heatIndex, _) => HeatIndexContainer(
                           heatIndex: heatIndex,
@@ -142,26 +150,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                         ),
                       ),
                     ),
-                    const HeatIndexChart(),
-                    ChangeNotifierProvider(
-                      create: (_) => Temperature(),
-                      child: Consumer<Temperature>(
-                        builder: (context, temperature, _) => TemperatureContainer(
-                          temperature: temperature,
-                          onSwap: () {
-                            setState(() {
-                              isFahrenheit = !isFahrenheit;
-                            });
-                          },
-                        ),
-                      ),
-                    ),
-                    ChangeNotifierProvider(
-                      create: (_) => Humidity(),
-                      child: Consumer<Humidity>(
-                        builder: (context, humidity, _) => const HumidityContainer(),
-                      ),
-                    ),
+                    const SizedBox(height: 16),
+                    const HTHChart(),
                   ],
                 ),
               ),
@@ -169,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
           SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(24.0, 12.0, 24.0, 24.0), // Reduced top padding
+              padding: const EdgeInsets.fromLTRB(24.0, 12.0, 24.0, 24.0),
               child: const MapPlaceholder(),
             ),
           ),
