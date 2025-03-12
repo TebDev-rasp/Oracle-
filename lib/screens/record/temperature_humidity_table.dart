@@ -28,81 +28,88 @@ class TemperatureHumidityTable extends StatelessWidget {
 
     return SizedBox(
       height: screenHeight * 0.72,  // 72% of screen height
-      child: Column(
-        children: [
-          // Fixed Header
-          Container(
-            width: double.infinity,
-            color: Theme.of(context).scaffoldBackgroundColor,
-            alignment: Alignment.center,
-            child: SizedBox(
-              width: tableWidth,
-              child: Table(
-                columnWidths: {
-                  0: FixedColumnWidth(timeWidth),
-                  1: FixedColumnWidth(tempWidth),
-                  2: FixedColumnWidth(humidityWidth),
-                },
-                children: [
-                  TableRow(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: Theme.of(context).dividerColor,
-                          width: screenWidth * 0.005,
-                        ),
-                      ),
-                    ),
-                    children: [
-                      _buildHeaderCell('Time', fontSize, verticalPadding),
-                      _buildHeaderCell('Temperature', fontSize, verticalPadding),
-                      _buildHeaderCell('Humidity', fontSize, verticalPadding),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // Scrollable Content
-          Expanded(
-            child: SingleChildScrollView(
-              child: Center(
-                child: SizedBox(
-                  width: tableWidth,
-                  child: Table(
-                    columnWidths: {
-                      0: FixedColumnWidth(timeWidth),
-                      1: FixedColumnWidth(tempWidth),
-                      2: FixedColumnWidth(humidityWidth),
-                    },
-                    children: records.map((record) {
-                      final temperature = isCelsius
-                          ? '${record.temperatureCelsius.toStringAsFixed(1)}°C'
-                          : '${record.temperatureFahrenheit.toStringAsFixed(1)}°F';
-                      final humidity = '${record.humidity.toStringAsFixed(1)}%';
-
-                      return TableRow(
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(
-                              color: Theme.of(context).dividerColor.withAlpha(51),
-                              width: 1,
-                            ),
+      child: Container(
+        color: Theme.of(context).brightness == Brightness.dark 
+            ? const Color(0xFF1A1A1A) 
+            : Colors.white,
+        child: Column(
+          children: [
+            // Fixed Header
+            Container(
+              width: double.infinity,
+              color: Theme.of(context).brightness == Brightness.dark 
+                  ? const Color(0xFF1A1A1A) 
+                  : Colors.white,
+              alignment: Alignment.center,
+              child: SizedBox(
+                width: tableWidth,
+                child: Table(
+                  columnWidths: {
+                    0: FixedColumnWidth(timeWidth),
+                    1: FixedColumnWidth(tempWidth),
+                    2: FixedColumnWidth(humidityWidth),
+                  },
+                  children: [
+                    TableRow(
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Theme.of(context).dividerColor,
+                            width: screenWidth * 0.005,
                           ),
                         ),
-                        children: [
-                          _buildTimeCell(record.time, fontSize, verticalPadding, context),
-                          _buildDataCell(temperature, fontSize, verticalPadding, true), // Added true for temperature
-                          _buildDataCell(humidity, fontSize, verticalPadding),
-                        ],
-                      );
-                    }).toList(),
+                      ),
+                      children: [
+                        _buildHeaderCell('Time', fontSize, verticalPadding),
+                        _buildHeaderCell('Temperature', fontSize, verticalPadding),
+                        _buildHeaderCell('Humidity', fontSize, verticalPadding),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Scrollable Content
+            Expanded(
+              child: SingleChildScrollView(
+                child: Center(
+                  child: SizedBox(
+                    width: tableWidth,
+                    child: Table(
+                      columnWidths: {
+                        0: FixedColumnWidth(timeWidth),
+                        1: FixedColumnWidth(tempWidth),
+                        2: FixedColumnWidth(humidityWidth),
+                      },
+                      children: records.map((record) {
+                        final temperature = isCelsius
+                            ? '${record.temperatureCelsius.round()}°C'
+                            : '${record.temperatureFahrenheit.round()}°F';
+                        final humidity = '${record.humidity.round()}%';
+
+                        return TableRow(
+                          decoration: BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(
+                                color: Theme.of(context).dividerColor.withAlpha(51),
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                          children: [
+                            _buildTimeCell(record.time, fontSize, verticalPadding, context),
+                            _buildDataCell(temperature, fontSize, verticalPadding, true), // Added true for temperature
+                            _buildDataCell(humidity, fontSize, verticalPadding),
+                          ],
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

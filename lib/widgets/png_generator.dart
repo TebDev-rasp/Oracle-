@@ -4,7 +4,7 @@ import 'package:screenshot/screenshot.dart';
 import '../models/hourly_record.dart';
 
 class PngGenerator {
-  static Widget generateTable(List<HourlyRecord> records) {
+  static Widget generateTable(List<HourlyRecord> records, bool isCelsius) {
     return Material(
       color: Colors.white,
       child: Container(
@@ -29,7 +29,7 @@ class PngGenerator {
               },
               children: [
                 _buildHeaderRow(),
-                ...records.map(_buildDataRow),
+                ...records.map((record) => _buildDataRow(record, isCelsius)),
               ],
             ),
           ],
@@ -67,18 +67,19 @@ class PngGenerator {
     );
   }
 
-  static TableRow _buildDataRow(HourlyRecord record) {
-    final tempF = (record.temperatureCelsius * 9/5) + 32;
-    final heatIndexF = (record.heatIndexCelsius * 9/5) + 32;
-    
+  static TableRow _buildDataRow(HourlyRecord record, bool isCelsius) {
     return TableRow(
       children: [
         _buildCell(_formatTime(record.time)),
-        _buildCell('${record.temperatureCelsius.toStringAsFixed(1)}°C\n${tempF.toStringAsFixed(1)}°F'),
-        _buildCell('${record.heatIndexCelsius.toStringAsFixed(1)}°C\n${heatIndexF.toStringAsFixed(1)}°F'),
-        _buildCell('${record.humidity.toStringAsFixed(1)}%'),
-        _buildCell(_getHeatIndexStatus(record.heatIndexCelsius), 
-          color: _getStatusColor(record.heatIndexCelsius)),
+        _buildCell(isCelsius 
+            ? '${record.temperatureCelsius.round()}°C'
+            : '${(record.temperatureFahrenheit).round()}°F'),
+        _buildCell(isCelsius
+            ? '${record.heatIndexCelsius.round()}°C'
+            : '${(record.heatIndexFahrenheit).round()}°F'),
+        _buildCell('${record.humidity.round()}%'),
+        _buildCell(_getHeatIndexStatus(record.heatIndexCelsius),
+            color: _getStatusColor(record.heatIndexCelsius)),
       ],
     );
   }
@@ -165,7 +166,7 @@ class PngGenerator {
           fit: BoxFit.contain,
           child: SizedBox(
             width: baseWidth,
-            child: generateTable(records),
+            child: generateTable(records, true),
           ),
         ),
       ),

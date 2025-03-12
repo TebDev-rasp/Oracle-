@@ -9,10 +9,12 @@ import 'png_generator.dart';
 
 class DownloadDialog extends StatefulWidget {
   final List<HourlyRecord> records;
+  final bool isCelsius;
 
   const DownloadDialog({
     super.key,
     required this.records,
+    required this.isCelsius,
   });
 
   @override
@@ -105,7 +107,10 @@ class _DownloadDialogState extends State<DownloadDialog> {
         );
       }
 
-      final pdf = await PdfGenerator.generateDocument(_filteredRecords);
+      final pdf = await PdfGenerator.generateDocument(
+        _filteredRecords, 
+        widget.isCelsius
+      );
       final bytes = await pdf.save();
       
       final output = await getTemporaryDirectory();
@@ -144,7 +149,10 @@ class _DownloadDialogState extends State<DownloadDialog> {
       final totalWidth = 800.0;
 
       final image = await screenshotController.captureFromWidget(
-        PngGenerator.generateTable(_filteredRecords),
+        PngGenerator.generateTable(
+          _filteredRecords,
+          widget.isCelsius
+        ),
         delay: const Duration(milliseconds: 300),
         targetSize: Size(totalWidth, totalHeight),
         pixelRatio: 2,

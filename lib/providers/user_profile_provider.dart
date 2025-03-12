@@ -9,7 +9,6 @@ import '../services/image_service.dart';
 import 'package:flutter/foundation.dart';
 import '../services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:developer' as developer;
 
 class UserProfileProvider with ChangeNotifier {
   final _logger = Logger('UserProfileProvider');
@@ -83,22 +82,27 @@ class UserProfileProvider with ChangeNotifier {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
 
-      // Save to permanent storage
-      final appDir = await getApplicationDocumentsDirectory();
-      final fileName = 'profile_image_${user.uid}.jpg';
-      final permanentFile = File('${appDir.path}/$fileName');
+      final bytes = await newImage.readAsBytes();
+      final base64Image = base64Encode(bytes);
       
-      // Copy the new image to permanent storage
-      await newImage.copy(permanentFile.path);
-      
-      // Save the path to SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('profile_image_${user.uid}', permanentFile.path);
-      
-      _profileImage = permanentFile;
+      // Check size limit (5MB)
+      if (base64Image.length > 5242880) {
+        throw Exception('Image size exceeds 5MB limit');
+      }
+
+      await _database
+          .child('user_images')
+          .child(user.uid)
+          .set({
+            'imageData': base64Image,
+            'timestamp': ServerValue.timestamp
+          });
+
+      _profileImage = newImage;
       notifyListeners();
     } catch (e) {
-      developer.log('Error updating profile image: $e');
+      _logger.warning('Error updating profile image', e);
+      rethrow;
     }
   }
 
@@ -133,5 +137,40 @@ class UserProfileProvider with ChangeNotifier {
     _profileImage = null;
     _isInitialized = false;
     notifyListeners();
+  }
+
+  Future<void> updateProfile({String? displayName, String? photoURL}) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      final updates = <String, dynamic>{};
+      
+      if (displayName != null) {
+        if (displayName.isEmpty || displayName.length > 50) {
+          throw Exception('Display name must be between 1 and 50 characters');
+        }
+        updates['profile/displayName'] = displayName;
+      }
+
+      if (photoURL != null) {
+        if (!RegExp(r'^https?:\/\/.+$').hasMatch(photoURL)) {
+          throw Exception('Invalid photo URL format');
+        }
+        updates['profile/photoURL'] = photoURL;
+      }
+
+      if (updates.isNotEmpty) {
+        await _database
+            .child('users')
+            .child(user.uid)
+            .update(updates);
+        
+        notifyListeners();
+      }
+    } catch (e) {
+      _logger.warning('Error updating profile', e);
+      rethrow;
+    }
   }
 }

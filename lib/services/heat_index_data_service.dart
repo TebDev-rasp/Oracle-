@@ -26,16 +26,17 @@ class WeatherDataService {
           if (value is Map) {
             final hour = int.parse(hourKey.split(':')[0]);
             
+            // Convert to integer using round()
             final heatIndex = value['heat_index']?['celsius'] != null 
-                ? double.parse(value['heat_index']['celsius'].toString())
+                ? (value['heat_index']['celsius'] as num).round().toDouble()
                 : 0.0;
                 
             final temperature = value['temperature']?['celsius'] != null
-                ? double.parse(value['temperature']['celsius'].toString())
+                ? (value['temperature']['celsius'] as num).round().toDouble()
                 : 0.0;
                 
-            final humidity = value['heat_index']?['humidity'] != null
-                ? double.parse(value['heat_index']['humidity'].toString())
+            final humidity = value['humidity'] != null
+                ? (value['humidity'] as num).round().toDouble()
                 : 0.0;
             
             final now = DateTime.now();

@@ -16,7 +16,6 @@ import 'services/firebase_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:firebase_database/firebase_database.dart';  // Add this import
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -52,21 +51,6 @@ void main() async {
   );
 
   try {
-    // Initialize Firebase first
-    await Firebase.initializeApp(
-      options: const FirebaseOptions(
-        apiKey: 'AIzaSyDXUBWc-zjqd6zkwIR_4M47KJhwCLydB7Q',
-        appId: '1:28956293501:android:c86c3a7c08623b83e93414', // using oracle package app ID
-        messagingSenderId: '28956293501', // project_number
-        projectId: 'heat-index-monitoring-b11b0',
-        databaseURL: 'https://heat-index-monitoring-b11b0-default-rtdb.firebaseio.com',
-      ),
-    );
-
-    // Configure Firebase Database persistence
-    FirebaseDatabase.instance.setPersistenceEnabled(true);
-    FirebaseDatabase.instance.setPersistenceCacheSizeBytes(10000000); // 10MB cache
-
     // Initialize notifications first
     final notificationService = NotificationService();
     await notificationService.initialize();
@@ -93,6 +77,8 @@ void main() async {
       );
     });
 
+    await Firebase.initializeApp();
+    
     // Initialize SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     
@@ -104,7 +90,9 @@ void main() async {
     }
     
     try {
-      await FirebaseService.initialize();  // Changed to static call
+      // Create an instance of FirebaseService and call initialize
+      final firebaseService = FirebaseService();
+      await firebaseService.initialize();
     } catch (e) {
       developer.log('Firebase service initialization failed: $e');
     }

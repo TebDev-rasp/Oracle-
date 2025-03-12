@@ -143,71 +143,78 @@ class _HeatIndexTableState extends State<HeatIndexTable> with SingleTickerProvid
 // 0.2% of screen width
     
     return SizedBox(
-      height: screenHeight * 0.72,  // 72% of screen height
-      child: Column(
-        children: [
-          // Fixed Header
-          Container(
-            width: double.infinity,
-            color: Theme.of(context).scaffoldBackgroundColor,
-            alignment: Alignment.center,
-            child: SizedBox(
-              width: tableWidth,
-              child: Table(
-                columnWidths: {
-                  0: FixedColumnWidth(timeWidth),
-                  1: FixedColumnWidth(heatWidth),
-                  2: FixedColumnWidth(statusWidth),
-                },
-                children: [
-                  TableRow(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: Theme.of(context).dividerColor,
-                          width: screenWidth * 0.005, // 0.5% of screen width
+      height: screenHeight * 0.72,
+      child: Container(
+        color: Theme.of(context).brightness == Brightness.dark 
+            ? const Color(0xFF1A1A1A) 
+            : Colors.white,
+        child: Column(
+          children: [
+            // Fixed Header
+            Container(
+              width: double.infinity,
+              color: Theme.of(context).brightness == Brightness.dark 
+                  ? const Color(0xFF1A1A1A) 
+                  : Colors.white,
+              alignment: Alignment.center,
+              child: SizedBox(
+                width: tableWidth,
+                child: Table(
+                  columnWidths: {
+                    0: FixedColumnWidth(timeWidth),
+                    1: FixedColumnWidth(heatWidth),
+                    2: FixedColumnWidth(statusWidth),
+                  },
+                  children: [
+                    TableRow(
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Theme.of(context).dividerColor,
+                            width: screenWidth * 0.005, // 0.5% of screen width
+                          ),
                         ),
                       ),
+                      children: [
+                        _buildHeaderCell('Time', fontSize, verticalPadding),
+                        _buildHeaderCell('Heat Index', fontSize, verticalPadding),
+                        _buildHeaderCell('Status', fontSize, verticalPadding),
+                      ],
                     ),
-                    children: [
-                      _buildHeaderCell('Time', fontSize, verticalPadding),
-                      _buildHeaderCell('RealFeel', fontSize, verticalPadding),
-                      _buildHeaderCell('Status', fontSize, verticalPadding),
-                    ],
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-          // Scrollable Content
-          Expanded(
-            child: SingleChildScrollView(
-              child: Center(
-                child: SizedBox(
-                  width: tableWidth,
-                  child: Table(
-                    columnWidths: {
-                      0: FixedColumnWidth(timeWidth),
-                      1: FixedColumnWidth(heatWidth),
-                      2: FixedColumnWidth(statusWidth),
-                    },
-                    children: widget.records.map((record) {
-                      return _buildDataRow(
-                        context, 
-                        record, 
-                        fontSize, 
-                        verticalPadding,
-                        timeWidth,
-                        heatWidth,
-                        statusWidth,
-                      );
-                    }).toList(),
+            // Scrollable Content
+            Expanded(
+              child: SingleChildScrollView(
+                child: Center(
+                  child: SizedBox(
+                    width: tableWidth,
+                    child: Table(
+                      columnWidths: {
+                        0: FixedColumnWidth(timeWidth),
+                        1: FixedColumnWidth(heatWidth),
+                        2: FixedColumnWidth(statusWidth),
+                      },
+                      children: widget.records.map((record) {
+                        return _buildDataRow(
+                          context, 
+                          record, 
+                          fontSize, 
+                          verticalPadding,
+                          timeWidth,
+                          heatWidth,
+                          statusWidth,
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -242,8 +249,8 @@ class _HeatIndexTableState extends State<HeatIndexTable> with SingleTickerProvid
     double statusWidth,
   ) {
     final heatIndex = widget.isCelsius
-        ? '${record.heatIndexCelsius.toStringAsFixed(1)}°C'
-        : '${record.heatIndexFahrenheit.toStringAsFixed(1)}°F';
+        ? '${record.heatIndexCelsius.round()}°C'
+        : '${record.heatIndexFahrenheit.round()}°F';
 
     return TableRow(
       decoration: BoxDecoration(

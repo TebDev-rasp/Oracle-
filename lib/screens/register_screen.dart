@@ -175,28 +175,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (_formKey.currentState?.validate() ?? false) {
       setState(() => _isLoading = true);
       try {
+        final email = _emailController.text.trim();
+        final username = _usernameController.text.trim();
+        final password = _passwordController.text;
+
         await _authService.register(
-          _emailController.text,
-          _passwordController.text,
-          _usernameController.text,
+          email,
+          username,
+          password,
         );
         
         if (mounted) {
-          context.read<UserProfileProvider>().updateUsername(_usernameController.text);
-        }
-
-        if (mounted) {
+          context.read<UserProfileProvider>().updateUsername(username);
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (context) => const HomeScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
             (route) => false,
           );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.toString())),
+            SnackBar(
+              content: Text(e.toString()),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       } finally {

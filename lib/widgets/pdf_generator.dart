@@ -3,7 +3,7 @@ import 'package:pdf/pdf.dart';
 import '../models/hourly_record.dart';
 
 class PdfGenerator {
-  static Future<pw.Document> generateDocument(List<HourlyRecord> records) async {
+  static Future<pw.Document> generateDocument(List<HourlyRecord> records, bool isCelsius) async {
     final pdf = pw.Document();
     
     pdf.addPage(
@@ -15,7 +15,7 @@ class PdfGenerator {
           children: [
             _buildHeader(),
             pw.SizedBox(height: 8),
-            _buildTable(records),
+            _buildTable(records, isCelsius),
           ],
         ),
       ),
@@ -42,7 +42,7 @@ class PdfGenerator {
     );
   }
 
-  static pw.Widget _buildTable(List<HourlyRecord> records) {
+  static pw.Widget _buildTable(List<HourlyRecord> records, bool isCelsius) {
     return pw.Center(  // Added Center widget
       child: pw.Table(
         border: pw.TableBorder.all(color: PdfColors.grey400),
@@ -56,7 +56,7 @@ class PdfGenerator {
         defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
         children: [
           _buildHeaderRow(),
-          ...records.map(_buildDataRow),
+          ...records.map((record) => _buildDataRow(record, isCelsius)),
         ],
       ),
     );
@@ -75,16 +75,17 @@ class PdfGenerator {
     );
   }
 
-  static pw.TableRow _buildDataRow(HourlyRecord record) {
-    final tempF = (record.temperatureCelsius * 9/5) + 32;
-    final heatIndexF = (record.heatIndexCelsius * 9/5) + 32;
-    
+  static pw.TableRow _buildDataRow(HourlyRecord record, bool isCelsius) {
     return pw.TableRow(
       children: [
         _buildCell(_formatTime(record.time)),
-        _buildCell('${record.temperatureCelsius.toStringAsFixed(1)}°C\n${tempF.toStringAsFixed(1)}°F'),
-        _buildCell('${record.heatIndexCelsius.toStringAsFixed(1)}°C\n${heatIndexF.toStringAsFixed(1)}°F'),
-        _buildCell('${record.humidity.toStringAsFixed(1)}%'),
+        _buildCell(isCelsius 
+            ? '${record.temperatureCelsius.round()}°C'
+            : '${(record.temperatureFahrenheit).round()}°F'),
+        _buildCell(isCelsius
+            ? '${record.heatIndexCelsius.round()}°C'
+            : '${(record.heatIndexFahrenheit).round()}°F'),
+        _buildCell('${record.humidity.round()}%'),
         _buildCell(_getHeatIndexStatus(record.heatIndexCelsius)),
       ],
     );

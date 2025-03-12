@@ -12,7 +12,7 @@ class HourlyRecord {
   final double humidity;
   final double temperatureCelsius;
   final double temperatureFahrenheit;
-  final int timestamp;
+  final int timestamp;  // Added timestamp field
 
   HourlyRecord({
     required this.time,
@@ -21,32 +21,41 @@ class HourlyRecord {
     required this.humidity,
     required this.temperatureCelsius,
     required this.temperatureFahrenheit,
-    required this.timestamp,
+    required this.timestamp,  // Added to constructor
   }) {
     if (!_timeRegex.hasMatch(time)) {
       throw FormatException('Invalid time format. Must be between 00:00 and 23:00');
     }
   }
 
-  factory HourlyRecord.fromMap(String time, Map<dynamic, dynamic> map) {
+  factory HourlyRecord.fromJson(String time, Map<dynamic, dynamic> json) {
     try {
-      // Safely cast the nested maps
-      final heatIndex = (map['heat_index'] as Map<dynamic, dynamic>?) ?? {};
-      final temperature = (map['temperature'] as Map<dynamic, dynamic>?) ?? {};
-      
       return HourlyRecord(
         time: _formatTime(time),
-        heatIndexCelsius: double.tryParse(heatIndex['celsius']?.toString() ?? '0') ?? 0.0,
-        heatIndexFahrenheit: double.tryParse(heatIndex['fahrenheit']?.toString() ?? '0') ?? 0.0,
-        humidity: double.tryParse(heatIndex['humidity']?.toString() ?? '0') ?? 0.0,
-        temperatureCelsius: double.tryParse(temperature['celsius']?.toString() ?? '0') ?? 0.0,
-        temperatureFahrenheit: double.tryParse(temperature['fahrenheit']?.toString() ?? '0') ?? 0.0,
-        timestamp: int.tryParse(temperature['timestamp']?.toString() ?? '0') ?? 0,
+        heatIndexCelsius: (json['heat_index']?['celsius'] as num?)?.toDouble() ?? 0,
+        heatIndexFahrenheit: (json['heat_index']?['fahrenheit'] as num?)?.toDouble() ?? 0,
+        humidity: (json['humidity'] as num?)?.toDouble() ?? 0,
+        temperatureCelsius: (json['temperature']?['celsius'] as num?)?.toDouble() ?? 0,
+        temperatureFahrenheit: (json['temperature']?['fahrenheit'] as num?)?.toDouble() ?? 0,
+        timestamp: (json['temperature']?['timestamp'] as num?)?.toInt() ?? 0,  // Added timestamp parsing
       );
     } catch (e) {
       _logger.warning('Error parsing record for time $time: $e');
       rethrow;
     }
+  }
+
+  // Add fromMap factory constructor
+  factory HourlyRecord.fromMap(String time, Map<String, dynamic> map) {
+    return HourlyRecord(
+      time: time,
+      temperatureCelsius: ((map['temperature']?['celsius'] as num?) ?? 0).toDouble(),
+      temperatureFahrenheit: ((map['temperature']?['fahrenheit'] as num?) ?? 0).toDouble(),
+      humidity: ((map['humidity'] as num?) ?? 0).toDouble(),
+      heatIndexCelsius: ((map['heat_index']?['celsius'] as num?) ?? 0).toDouble(),
+      heatIndexFahrenheit: ((map['heat_index']?['fahrenheit'] as num?) ?? 0).toDouble(),
+      timestamp: ((map['temperature']?['timestamp'] as num?) ?? 0).toInt(),
+    );
   }
 
   // Helper method to format time string
@@ -78,7 +87,7 @@ class HourlyRecord {
     return 'HourlyRecord{time: $time, heatIndexC: $heatIndexCelsius°C, '
            'heatIndexF: $heatIndexFahrenheit°F, humidity: $humidity%, '
            'tempC: $temperatureCelsius°C, tempF: $temperatureFahrenheit°F, '
-           'timestamp: $timestamp}';
+           'timestamp: $timestamp}';  // Added timestamp to toString
   }
 
   Map<String, dynamic> toMap() {
@@ -91,8 +100,8 @@ class HourlyRecord {
       'temperature': {
         'celsius': temperatureCelsius,
         'fahrenheit': temperatureFahrenheit,
+        'timestamp': timestamp,  // Added timestamp to toMap
       },
-      'timestamp': timestamp,
     };
   }
 }

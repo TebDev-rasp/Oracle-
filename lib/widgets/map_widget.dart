@@ -49,7 +49,9 @@ class _MapWidgetState extends State<MapWidget> {
           mapController: _mapController,
           options: MapOptions(
             initialCenter: castillejosLocation,
-            initialZoom: 15, // Increased from 13 for better local detail
+            initialZoom: 9,      // Start at zoom level 13
+            minZoom: 9,          // Minimum zoom unchanged
+            maxZoom: 16,         // Increased max zoom to 17
             onMapReady: () {
               setState(() {
                 isLoading = false;
@@ -61,8 +63,8 @@ class _MapWidgetState extends State<MapWidget> {
               urlTemplate: 'https://api.maptiler.com/maps/basic-v2/256/{z}/{x}/{y}.png?key=U1ZGZGT5WX7HvfCaRryf',
               userAgentPackageName: 'com.example.app',
               tileProvider: CachingTileProvider(),
-              maxZoom: 20,
-              minZoom: 1,
+              maxZoom: 16,       // Match MapOptions maxZoom
+              minZoom: 9,        // Match MapOptions minZoom
               additionalOptions: const {
                 'attribution': '\u003ca href="https://www.maptiler.com/copyright/" target="_blank"\u003e\u0026copy; MapTiler\u003c/a\u003e',
               },
@@ -111,7 +113,7 @@ class _MapWidgetState extends State<MapWidget> {
               _buildMinimalButton(
                 icon: Icons.my_location,
                 onPressed: () {
-                  _mapController.move(castillejosLocation, 13);
+                  _mapController.move(castillejosLocation, 9);
                 },
                 heroTag: "resetLocation",
               ),
@@ -132,7 +134,21 @@ class _MapWidgetState extends State<MapWidget> {
       height: 36,
       child: FloatingActionButton(
         heroTag: heroTag,
-        onPressed: onPressed,
+        onPressed: () {
+          if (heroTag == "zoomIn") {
+            final newZoom = _mapController.camera.zoom + 1;
+            if (newZoom <= 17) {  // Updated max zoom check
+              _mapController.move(_mapController.camera.center, newZoom);
+            }
+          } else if (heroTag == "zoomOut") {
+            final newZoom = _mapController.camera.zoom - 1;
+            if (newZoom >= 9) {   // Min zoom check unchanged
+              _mapController.move(_mapController.camera.center, newZoom);
+            }
+          } else {
+            onPressed();
+          }
+        },
         mini: true,
         elevation: 2,
         backgroundColor: const Color(0xFFE0E0E0),

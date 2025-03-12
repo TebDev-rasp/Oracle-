@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/firebase_service.dart';
 import '../../models/hourly_record.dart';
 import 'heat_index_table.dart';
@@ -32,33 +33,9 @@ class _HourlyRecordViewState extends State<HourlyRecordView> {
   @override
   void initState() {
     super.initState();
-    // Remove the hasScrolled check to ensure scroll happens
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToCurrentTime();
-    });
+    // Remove direct call to _scrollToCurrentTime
   }
 
-  void _scrollToCurrentTime() {
-    if (!mounted) return;
-
-    // Increase delay to ensure table is fully rendered
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (!mounted) return;
-
-      final currentHour = DateTime.now().hour;
-      // Adjust calculations based on actual measurements
-      final rowHeight = 42.0; // Reduced row height
-      final headerOffset = 140.0; // Increased header offset to account for all headers
-      
-      final targetPosition = (currentHour * rowHeight) + headerOffset;
-
-      _scrollController.animateTo(
-        targetPosition,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
-    });
-  }
 
   @override
   void dispose() {
@@ -105,67 +82,97 @@ class _HourlyRecordViewState extends State<HourlyRecordView> {
       screenHeight * 0.01
     );
 
-    return StreamBuilder<List<HourlyRecord>>(
-      stream: _firebaseService.getHourlyRecords(),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, authSnapshot) {
+        if (authSnapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (!authSnapshot.hasData) {
           return Center(
-            child: Text('Error: ${snapshot.error}'),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('Please login to view records'),
+                ElevatedButton(
+                  onPressed: () => Navigator.pushNamed(context, '/login'),
+                  child: const Text('Login'),
+                ),
+              ],
+            ),
           );
         }
 
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        }
+        return StreamBuilder<List<HourlyRecord>>(
+          stream: _firebaseService.getHourlyRecords(),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Center(
+                child: Text(
+                  'Error loading records: ${snapshot.error}',
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              );
+            }
 
-        final records = snapshot.data ?? [];
-        final filteredRecords = _getFilteredRecords(records);
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-        return Column(
-          children: [
-            Padding(
-              padding: headerPadding,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            final records = snapshot.data ?? [];
+            final filteredRecords = _getFilteredRecords(records);
+
+            return Container(
+              color: Theme.of(context).brightness == Brightness.dark 
+                  ? const Color(0xFF1A1A1A)
+                  : Colors.white,
+              child: Column(
                 children: [
-                  Text(
-                    'Hourly Records',
-                    style: _createTextStyle(
-                      fontSize: titleFontSize,
-                      fontWeight: FontWeight.bold,
+                  Padding(
+                    padding: headerPadding,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Hourly Records',
+                          style: _createTextStyle(
+                            fontSize: titleFontSize,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        RecordSettingsButtons(
+                          isCelsius: _isCelsius,
+                          onTemperatureUnitChanged: () {
+                            setState(() {
+                              _isCelsius = !_isCelsius;
+                            });
+                          },
+                          records: filteredRecords,
+                          currentTimeFilter: _timeFilter,
+                          onTimeFilterChanged: (value) {
+                            setState(() {
+                              _timeFilter = value;
+                            });
+                          },
+                          // Add these new properties
+                          buttonSize: buttonSize,
+                          buttonPadding: buttonPadding,
+                          buttonSpacing: buttonSpacing,
+                        ),
+                      ],
                     ),
                   ),
-                  RecordSettingsButtons(
-                    isCelsius: _isCelsius,
-                    onTemperatureUnitChanged: () {
-                      setState(() {
-                        _isCelsius = !_isCelsius;
-                      });
-                    },
-                    records: filteredRecords,
-                    currentTimeFilter: _timeFilter,
-                    onTimeFilterChanged: (value) {
-                      setState(() {
-                        _timeFilter = value;
-                      });
-                    },
-                    // Add these new properties
-                    buttonSize: buttonSize,
-                    buttonPadding: buttonPadding,
-                    buttonSpacing: buttonSpacing,
+                  Expanded(
+                    child: HeatIndexTable(
+                      records: filteredRecords,
+                      isCelsius: _isCelsius,
+                    ),
                   ),
                 ],
               ),
-            ),
-            Expanded(
-              child: HeatIndexTable(
-                records: filteredRecords,
-                isCelsius: _isCelsius,
-              ),
-            ),
-          ],
+            );
+          },
         );
       },
     );

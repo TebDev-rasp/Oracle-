@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:logging/logging.dart';
 import '../models/hourly_record.dart';
@@ -7,39 +8,58 @@ import 'heat_index_monitor.dart';
 
 class FirebaseService {
   static final _logger = Logger('FirebaseService');
-  static final DatabaseReference _database = FirebaseDatabase.instance.ref();
+  final DatabaseReference _database = FirebaseDatabase.instance.ref();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   static bool _isInitialized = false;
 
   Stream<List<HourlyRecord>> getHourlyRecords() {
-    return _database.child('hourly_records').onValue.map((event) {
-      final Map<dynamic, dynamic> data = 
-          event.snapshot.value as Map<dynamic, dynamic>? ?? {};
-      
-      List<HourlyRecord> records = [];
-      
-      data.forEach((time, value) {
-        if (value is Map) {
-          try {
-            records.add(HourlyRecord.fromMap(time.toString(), 
-                Map<String, dynamic>.from(value)));
-          } catch (e) {
-            _logger.warning('Error parsing record for time $time: $e');
-          }
-        }
-      });
+    if (_auth.currentUser == null) {
+      _logger.warning('Attempted to access hourly records without authentication');
+      return Stream.value(<HourlyRecord>[]);  // Specify type explicitly
+    }
 
-      // Sort records chronologically by hour (00:00 to 23:00)
-      records.sort((a, b) {
-        int hourA = int.parse(a.time.split(':')[0]);
-        int hourB = int.parse(b.time.split(':')[0]);
-        return hourA.compareTo(hourB);
-      });
-      
-      // Log the sorted order for debugging
-      _logger.fine('Sorted records: ${records.map((r) => r.time).join(', ')}');
-      
-      return records;
-    });
+    return _database
+        .child('hourly_records')
+        .onValue
+        .map((event) {
+          if (event.snapshot.value == null) return <HourlyRecord>[];  // Specify type
+
+          try {
+            final Map<dynamic, dynamic> data = 
+                event.snapshot.value as Map<dynamic, dynamic>;
+            
+            final records = <HourlyRecord>[];
+            
+            data.forEach((time, value) {
+              if (value is Map) {
+                try {
+                  final record = HourlyRecord.fromMap(
+                    time.toString(), 
+                    Map<String, dynamic>.from(value)
+                  );
+                  records.add(record);
+                } catch (e) {
+                  _logger.warning('Error parsing record for time $time: $e');
+                }
+              }
+            });
+
+            records.sort((a, b) {
+              int hourA = int.parse(a.time.split(':')[0]);
+              int hourB = int.parse(b.time.split(':')[0]);
+              return hourA.compareTo(hourB);
+            });
+            
+            return records;
+          } catch (e) {
+            _logger.severe('Error parsing hourly records', e);
+            return <HourlyRecord>[];  // Specify type
+          }
+        })
+        .handleError((error) {
+          _logger.severe('Error fetching hourly records', error);
+          return <HourlyRecord>[];  // Specify type
+        });
   }
 
   // Method to get a specific hour's record
@@ -74,7 +94,8 @@ class FirebaseService {
     }
   }
 
-  static Future<void> initialize() async {
+  // Convert static methods to instance methods
+  Future<void> initialize() async {
     _logger.info('Initializing Firebase connection...');
     
     // Monitor heat index path
@@ -97,65 +118,36 @@ class FirebaseService {
     if (_isInitialized) return;
 
     try {
-      // Set persistence enabled (remove await and duplicate call)
-      FirebaseDatabase.instance.setPersistenceEnabled(true);
-
-      // Listen to your actual sensor data path in Firebase
-      _database.child('sensors/your_sensor_path').onValue.listen((event) {
-        if (event.snapshot.value != null) {
-          final data = event.snapshot.value as Map<dynamic, dynamic>;
-          if (data.containsKey('heat_index')) {
-            final heatIndex = double.tryParse(data['heat_index'].toString());
-            if (heatIndex != null) {
-              HeatIndexMonitor.checkHeatIndex(heatIndex);
-            }
-          }
-        }
-      });
-
-      // Initialize FCM for background notifications
-      await FirebaseMessaging.instance.requestPermission();
+      // Initialize Firebase features
+      await _initializeFirebaseFeatures();
       
-      // Get FCM token for this device
-      final token = await FirebaseMessaging.instance.getToken();
-      _logger.info('FCM Token: $token');
-
-      // Initialize Firebase Messaging
-      await FirebaseMessaging.instance.setAutoInitEnabled(true);
-      
-      // Set background message handler
-      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-      
-      // Handle foreground messages
-      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        if (message.data.containsKey('heat_index')) {
-          final heatIndex = double.tryParse(message.data['heat_index']);
-          if (heatIndex != null) {
-            HeatIndexMonitor.checkHeatIndex(heatIndex);
-          }
-        }
-      });
-
-      // Request notification permissions
-      await FirebaseMessaging.instance.requestPermission(
-        alert: true,
-        badge: true,
-        sound: false,  // Change this to false
-        criticalAlert: true,
-      );
-
-      // Subscribe to heat index updates
-      await FirebaseMessaging.instance.subscribeToTopic('heat_index_updates');
-
       _isInitialized = true;
       _logger.info('Firebase service initialized successfully');
     } catch (e) {
       _logger.severe('Failed to initialize Firebase service: $e');
-      // Don't rethrow - allow app to continue without Firebase
     }
   }
 
-  static Future<void> testConnection() async {
+  Future<void> _initializeFirebaseFeatures() async {
+    FirebaseDatabase.instance.setPersistenceEnabled(true);
+
+    await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      badge: true,
+      sound: false,
+      criticalAlert: true,
+    );
+
+    final token = await FirebaseMessaging.instance.getToken();
+    _logger.info('FCM Token: $token');
+
+    await FirebaseMessaging.instance.setAutoInitEnabled(true);
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+    await FirebaseMessaging.instance.subscribeToTopic('heat_index_updates');
+  }
+
+  Future<void> testConnection() async {
     try {
       final snapshot = await _database
           .child('sensor_data/smooth/heat_index/celsius')

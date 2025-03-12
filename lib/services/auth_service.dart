@@ -1,8 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:logging/logging.dart';
-import 'package:oracle/services/avatar_service.dart';
-import 'package:oracle/services/image_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -31,16 +29,40 @@ class AuthService {
 
   Future<UserCredential> login(String emailOrUsername, String password) async {
     try {
-      String email = emailOrUsername;
+      String email = emailOrUsername.trim();
       
-      if (!isEmail(emailOrUsername)) {
-        email = await getEmailFromUsername(emailOrUsername);
+      if (!isEmail(email)) {
+        // Get email from username mapping
+        final usernameSnapshot = await _database
+            .child('usernames')
+            .child(emailOrUsername)
+            .get();
+
+        if (!usernameSnapshot.exists) {
+          throw FirebaseAuthException(
+            code: 'user-not-found',
+            message: 'No user found with this username',
+          );
+        }
+
+        final userData = usernameSnapshot.value as Map<dynamic, dynamic>;
+        email = userData['email'] as String;
       }
 
-      return await _auth.signInWithEmailAndPassword(
+      final userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      // Update last login timestamp
+      await _database
+          .child('users')
+          .child(userCredential.user!.uid)
+          .update({
+            'lastLogin': ServerValue.timestamp
+          });
+
+      return userCredential;
     } catch (e) {
       _logger.warning('Login error', e);
       rethrow;
@@ -49,31 +71,69 @@ class AuthService {
 
   Future<UserCredential> register(String email, String username, String password) async {
     try {
+      // Validate username format
+      if (!RegExp(r'^[a-zA-Z0-9_-]{3,30}$').hasMatch(username)) {
+        throw FirebaseAuthException(
+          code: 'invalid-username',
+          message: 'Username must be 3-30 characters and contain only letters, numbers, underscores, and hyphens',
+        );
+      }
+
+      // Validate email format
+      if (!RegExp(r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$').hasMatch(email)) {
+        throw FirebaseAuthException(
+          code: 'invalid-email',
+          message: 'Please enter a valid email address',
+        );
+      }
+
+      // Create auth user first (this sets auth != null)
       final userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
       if (userCredential.user != null) {
-        // Create user profile
-        await _database.child('users').child(userCredential.user!.uid).set({
-          'username': username,
+        final uid = userCredential.user!.uid;
+        
+        // Create username mapping first (requires auth != null)
+        await _database.child('usernames').child(username).set({
+          'uid': uid,
           'email': email,
+          'username': username  // Required by validation rules
         });
 
-        // Generate and save random avatar
-        final avatarService = AvatarService();
-        final avatarFile = await avatarService.generateRandomAvatar(userCredential.user!.uid);
-        
-        if (avatarFile != null) {
-          final imageService = ImageService();
-          await imageService.uploadImageAsBase64(avatarFile, userCredential.user!.uid);
-        }
+        // Then create user data (requires auth.uid === $uid)
+        await _database.child('users').child(uid).set({
+          'username': username,
+          'email': email,
+          'profile': {
+            'displayName': username,
+            'role': 'user'
+          },
+          'createdAt': ServerValue.timestamp,
+          'lastLogin': ServerValue.timestamp
+        });
+
+        return userCredential;
       }
 
-      return userCredential;
+      throw FirebaseAuthException(
+        code: 'registration-failed',
+        message: 'Failed to complete registration',
+      );
     } catch (e) {
       _logger.severe('Error during registration', e);
+      
+      // If registration fails, clean up any partial data
+      if (_auth.currentUser != null) {
+        try {
+          await _auth.currentUser!.delete();
+        } catch (deleteError) {
+          _logger.warning('Error cleaning up failed registration', deleteError);
+        }
+      }
+      
       rethrow;
     }
   }

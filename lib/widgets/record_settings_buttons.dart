@@ -63,7 +63,10 @@ class RecordSettingsButtons extends StatelessWidget {
   void _showDownloadDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => DownloadDialog(records: records),
+      builder: (context) => DownloadDialog(
+        records: records,
+        isCelsius: isCelsius,  // Add this parameter
+      ),
     );
   }
 

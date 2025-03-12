@@ -64,7 +64,7 @@ class HumidityContainer extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        humidity.value.toStringAsFixed(1),
+                        humidity.value.round().toString(), // Changed from toStringAsFixed(1)
                         style: const TextStyle(
                           fontSize: valueFontSize,
                           fontWeight: FontWeight.bold,

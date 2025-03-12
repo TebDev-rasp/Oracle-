@@ -73,7 +73,7 @@ class _TemperatureContainerState extends State<TemperatureContainer> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${displayValue.toStringAsFixed(1)}°',
+                      '${displayValue.round()}°', // Changed from toStringAsFixed(1)
                       style: const TextStyle(
                         fontSize: valueFontSize,
                         fontWeight: FontWeight.bold,

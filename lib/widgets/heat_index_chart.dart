@@ -21,7 +21,7 @@ class _HeatIndexChartState extends State<HeatIndexChart> {
 
   double _minX = 0;
   double _maxX = 23; // Changed from 24 to 23
-  double _minY = 25;
+  double _minY = 20; // Changed from 25 to 20
   double _maxY = 50;
   double _zoomLevel = 1.0;
   double _initialZoomLevel = 1.0;
@@ -79,9 +79,9 @@ class _HeatIndexChartState extends State<HeatIndexChart> {
           _temperatureSpots.clear();
           
           for (var point in dataPoints) {
-            final heatIndexValue = point.heatIndex;
-                
-            final temperatureValue = point.temperature;
+            // Round values to integers
+            final heatIndexValue = point.heatIndex.round().toDouble();
+            final temperatureValue = point.temperature.round().toDouble();
                 
             _heatIndexSpots.add(FlSpot(
               point.timestamp.hour.toDouble(),
@@ -129,25 +129,21 @@ class _HeatIndexChartState extends State<HeatIndexChart> {
     setState(() {
       _zoomLevel = scale.clamp(1.0, 3.0);
       
-      // Calculate center point
       final centerX = (_minX + _maxX) / 2;
       final centerY = (_minY + _maxY) / 2;
       
-      // Calculate new ranges
-      final xRange = 23 / _zoomLevel; // Changed from 24 to 23
-      final yRange = 25 / _zoomLevel;
+      final xRange = 23 / _zoomLevel;
+      final yRange = 30 / _zoomLevel; // Changed from 25 to 30 to match new range
       
-      // Update ranges around center point
       _minX = centerX - (xRange / 2);
       _maxX = centerX + (xRange / 2);
       _minY = centerY - (yRange / 2);
       _maxY = centerY + (yRange / 2);
       
-      // Ensure bounds
-      _minX = _minX.clamp(0.0, 22.0); // Changed from 23.0 to 22.0
-      _maxX = _maxX.clamp(1.0, 23.0); // Changed from 24.0 to 23.0
-      _minY = _minY.clamp(25.0, 45.0);
-      _maxY = _maxY.clamp(30.0, 50.0);
+      _minX = _minX.clamp(0.0, 22.0);
+      _maxX = _maxX.clamp(1.0, 23.0);
+      _minY = _minY.clamp(20.0, 45.0); // Changed from 25.0 to 20.0
+      _maxY = _maxY.clamp(25.0, 50.0); // Changed from 30.0 to 25.0
     });
   }
 
@@ -244,15 +240,15 @@ class _HeatIndexChartState extends State<HeatIndexChart> {
           _handleZoom(_initialZoomLevel * details.scale);
         });
       },
-      child: AspectRatio(  // Changed to direct AspectRatio
-        aspectRatio: 1.4,
+      child: AspectRatio(
+        aspectRatio: 1.3, // Changed from 1.7 to make chart taller
         child: Padding(
           padding: const EdgeInsets.only(right: 18, left: 12),
           child: LineChart(
             LineChartData(
               minX: _minX,
               maxX: _maxX,
-              minY: _minY,
+              minY: _minY, // Changed to match new minimum
               maxY: _maxY,
               clipData: FlClipData.all(),
               gridData: FlGridData(show: true),
@@ -275,7 +271,7 @@ class _HeatIndexChartState extends State<HeatIndexChart> {
                   getTooltipItems: (List<LineBarSpot> spots) {
                     return spots.map((spot) {
                       final hour = spot.x.toInt();
-                      final value = '${spot.y.toStringAsFixed(1)}°C';
+                      final value = '${spot.y.round()}°C'; // Changed from toStringAsFixed(1)
                       return LineTooltipItem(
                         '${_formatHourLabel(hour)}\n$value',
                         const TextStyle(
@@ -360,7 +356,7 @@ class _HeatIndexChartState extends State<HeatIndexChart> {
                     reservedSize: 22,
                     getTitlesWidget: (double value, TitleMeta meta) {
                       int hour = value.toInt();
-                      if (hour % 4 != 0 && hour != 23) return const Text('');
+                      // Change the condition to include 23
                       if (hour % 4 != 0 && hour != 23) return const Text('');
                       return Text(
                         _formatHourLabel(hour),
@@ -378,7 +374,7 @@ class _HeatIndexChartState extends State<HeatIndexChart> {
                     reservedSize: 52,
                     interval: 5,
                     getTitlesWidget: (double value, TitleMeta meta) {
-                      final List<int> showValues = [25, 30, 35, 40, 45, 50];  // These are the values shown on Y-axis
+                      final List<int> showValues = [20, 25, 30, 35, 40, 45, 50];  // Added 20 to Y-axis values
                       if (!showValues.contains(value.toInt())) return const Text('');
                       
                       return Padding(

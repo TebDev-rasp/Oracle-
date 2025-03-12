@@ -50,7 +50,7 @@ class _HeatIndexContainerState extends State<HeatIndexContainer> {
             Padding(
               padding: const EdgeInsets.only(top: 15, bottom: 10),
               child: Text(
-                'RealFeel',
+                'Heat Index',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -100,7 +100,7 @@ class _HeatIndexContainerState extends State<HeatIndexContainer> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${displayValue.toStringAsFixed(1)}°',
+                          '${displayValue.round()}°', // Changed from toStringAsFixed(1)
                           style: TextStyle(
                             fontSize: HeatIndexContainer._valueFontSize,
                             fontWeight: FontWeight.bold,
