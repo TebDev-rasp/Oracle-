@@ -35,18 +35,31 @@ class AuthService {
         // Get email from username mapping
         final usernameSnapshot = await _database
             .child('usernames')
-            .child(emailOrUsername)
+            .orderByChild('username')  // Changed from direct child access
+            .equalTo(emailOrUsername)  // Use equalTo for querying
             .get();
 
-        if (!usernameSnapshot.exists) {
+        if (!usernameSnapshot.exists || usernameSnapshot.value == null) {
+          _logger.warning('Username not found: $emailOrUsername');
           throw FirebaseAuthException(
             code: 'user-not-found',
             message: 'No user found with this username',
           );
         }
 
-        final userData = usernameSnapshot.value as Map<dynamic, dynamic>;
+        final Map<dynamic, dynamic> data = usernameSnapshot.value as Map;
+        if (data.isEmpty) {
+          throw FirebaseAuthException(
+            code: 'user-not-found',
+            message: 'No user found with this username',
+          );
+        }
+
+        // Get the first (and should be only) entry
+        final userData = data.values.first as Map<dynamic, dynamic>;
         email = userData['email'] as String;
+        
+        _logger.info('Found email for username: $emailOrUsername');
       }
 
       final userCredential = await _auth.signInWithEmailAndPassword(
@@ -64,7 +77,7 @@ class AuthService {
 
       return userCredential;
     } catch (e) {
-      _logger.warning('Login error', e);
+      _logger.severe('Login error', e);
       rethrow;
     }
   }

@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:logging/logging.dart';
+import 'package:rxdart/rxdart.dart';
 import '../models/hourly_record.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -13,53 +14,42 @@ class FirebaseService {
   static bool _isInitialized = false;
 
   Stream<List<HourlyRecord>> getHourlyRecords() {
-    if (_auth.currentUser == null) {
-      _logger.warning('Attempted to access hourly records without authentication');
-      return Stream.value(<HourlyRecord>[]);  // Specify type explicitly
-    }
+    return _auth.authStateChanges().switchMap((user) {
+      if (user == null) {
+        _logger.warning('No authenticated user');
+        return Stream.value(<HourlyRecord>[]);
+      }
 
-    return _database
-        .child('hourly_records')
-        .onValue
-        .map((event) {
-          if (event.snapshot.value == null) return <HourlyRecord>[];  // Specify type
+      return _database
+          .child('hourly_records')  // Fixed path to match rules
+          .onValue
+          .map((event) {
+            if (event.snapshot.value == null) return <HourlyRecord>[];
 
-          try {
-            final Map<dynamic, dynamic> data = 
-                event.snapshot.value as Map<dynamic, dynamic>;
-            
-            final records = <HourlyRecord>[];
-            
-            data.forEach((time, value) {
-              if (value is Map) {
-                try {
-                  final record = HourlyRecord.fromMap(
-                    time.toString(), 
-                    Map<String, dynamic>.from(value)
-                  );
-                  records.add(record);
-                } catch (e) {
-                  _logger.warning('Error parsing record for time $time: $e');
+            try {
+              final Map<dynamic, dynamic> data = 
+                  event.snapshot.value as Map<dynamic, dynamic>;
+               
+              final records = <HourlyRecord>[];
+              
+              data.forEach((time, value) {
+                if (value is Map) {
+                  try {
+                    records.add(HourlyRecord.fromMap(time.toString(), 
+                      Map<String, dynamic>.from(value)));
+                  } catch (e) {
+                    _logger.warning('Error parsing record for time $time: $e');
+                  }
                 }
-              }
-            });
+              });
 
-            records.sort((a, b) {
-              int hourA = int.parse(a.time.split(':')[0]);
-              int hourB = int.parse(b.time.split(':')[0]);
-              return hourA.compareTo(hourB);
-            });
-            
-            return records;
-          } catch (e) {
-            _logger.severe('Error parsing hourly records', e);
-            return <HourlyRecord>[];  // Specify type
-          }
-        })
-        .handleError((error) {
-          _logger.severe('Error fetching hourly records', error);
-          return <HourlyRecord>[];  // Specify type
-        });
+              return records..sort((a, b) => a.time.compareTo(b.time));
+            } catch (e) {
+              _logger.severe('Error parsing hourly records', e);
+              return <HourlyRecord>[];
+            }
+          });
+    });
   }
 
   // Method to get a specific hour's record

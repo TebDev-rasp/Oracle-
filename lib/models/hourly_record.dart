@@ -47,15 +47,20 @@ class HourlyRecord {
 
   // Add fromMap factory constructor
   factory HourlyRecord.fromMap(String time, Map<String, dynamic> map) {
-    return HourlyRecord(
-      time: time,
-      temperatureCelsius: ((map['temperature']?['celsius'] as num?) ?? 0).toDouble(),
-      temperatureFahrenheit: ((map['temperature']?['fahrenheit'] as num?) ?? 0).toDouble(),
-      humidity: ((map['humidity'] as num?) ?? 0).toDouble(),
-      heatIndexCelsius: ((map['heat_index']?['celsius'] as num?) ?? 0).toDouble(),
-      heatIndexFahrenheit: ((map['heat_index']?['fahrenheit'] as num?) ?? 0).toDouble(),
-      timestamp: ((map['temperature']?['timestamp'] as num?) ?? 0).toInt(),
-    );
+    try {
+      return HourlyRecord(
+        time: _formatTime(time),
+        heatIndexCelsius: (map['heat_index']?['celsius'] as num?)?.toDouble() ?? 0.0,
+        heatIndexFahrenheit: (map['heat_index']?['fahrenheit'] as num?)?.toDouble() ?? 0.0,
+        humidity: (map['humidity'] as num?)?.toDouble() ?? 0.0,
+        temperatureCelsius: (map['temperature']?['celsius'] as num?)?.toDouble() ?? 0.0,
+        temperatureFahrenheit: (map['temperature']?['fahrenheit'] as num?)?.toDouble() ?? 0.0,
+        timestamp: (map['timestamp'] as num?)?.toInt() ?? 0,  // Fixed timestamp path
+      );
+    } catch (e) {
+      _logger.severe('Error creating HourlyRecord from map: $e\nMap: $map');
+      rethrow;
+    }
   }
 
   // Helper method to format time string
@@ -100,8 +105,8 @@ class HourlyRecord {
       'temperature': {
         'celsius': temperatureCelsius,
         'fahrenheit': temperatureFahrenheit,
-        'timestamp': timestamp,  // Added timestamp to toMap
       },
+      'timestamp': timestamp,
     };
   }
 }
